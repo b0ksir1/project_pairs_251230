@@ -28,6 +28,10 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+
+  # Card Swiper
+  card_swiper: ^3.0.1
+
   flutter:
     sdk: flutter
 
@@ -56,10 +60,6 @@ dependencies:
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
 
-  # Card Swiper
-  card_swiper: ^3.0.1
-  flutter_card_swiper: ^7.2.0
-  
   # Social Login
   flutter_naver_login: ^2.1.1
   kakao_flutter_sdk: ^1.10.0
