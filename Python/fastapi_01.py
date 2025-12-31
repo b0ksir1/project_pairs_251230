@@ -9,6 +9,7 @@ from customerDB import router as customer_router
 from withdrawDB import router as withdraw_router
 from obtainDB import router as obtain_router
 from employeeDB import router as employee_router
+import config
 
 
 app = FastAPI()
@@ -25,4 +26,4 @@ app.include_router(employee_router,prefix='/employee',tags=['employee'])
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="172.16.250.194", port=8000)
+    uvicorn.run(app, host=config.FASTAPI_HOST, port=8000)
