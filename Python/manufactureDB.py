@@ -41,12 +41,12 @@ async def insert(manufacture_name :str = Form(...), manufacture_address:str = Fo
         return {"results" : "Error"}  
     
 @router.post('/update')
-async def update(id:int = Form(...), manufacture_name :str = Form(...), manufacture_address:str = Form(...), manufacture_phone:str = Form(...)):
+async def update(manufacture_id:int = Form(...), manufacture_name :str = Form(...), manufacture_address:str = Form(...), manufacture_phone:str = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
-        sql = 'update manufacture set manufacture_name = %s, manufacture_address = %s,manufacture_phone =%s where seq = %s'
-        curs.execute(sql, (manufacture_name,manufacture_address, manufacture_phone, id))
+        sql = 'update manufacture set manufacture_name = %s, manufacture_address = %s,manufacture_phone =%s where manufacture_id = %s'
+        curs.execute(sql, (manufacture_name,manufacture_address, manufacture_phone, manufacture_id))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -55,12 +55,12 @@ async def update(id:int = Form(...), manufacture_name :str = Form(...), manufact
         print("Error ", e)
         return {"results" : "Error"} 
     
-@router.delete('/delete/{seq}')
-async def delete(id:int):
+@router.delete('/delete/{manufacture_id}')
+async def delete(manufacture_id:int):
     try:
         conn = connect()
         curs = conn.cursor()
-        curs.execute('delete from manufacture where seq = %s', (id))
+        curs.execute('delete from manufacture where manufacture_id = %s', (manufacture_id))
         conn.commit()
         conn.close()
         return {"results" : "OK"}

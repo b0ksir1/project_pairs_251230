@@ -18,14 +18,15 @@ async def select():
     curs = conn.cursor()    
     curs.execute(
         '''
-        select product_id, 
+        select 
+        product_id, 
         product_color_id, 
         product_size_id, 
         product_brand_id, 
         product_category_id, 
         product_name, 
         product_description, 
-        product_sell, 
+        product_price 
         from product order by product_name
     '''
     )
@@ -39,7 +40,7 @@ async def select():
                'product_category_id' : row[4],
                'product_name' : row[5],
                'product_description' : row[6],
-               'product_sell' : row[7],
+               'product_price' : row[7],
                } for row in rows]
     return {'results' : result}
 
@@ -50,7 +51,7 @@ async def insert(product_color_id :int = Form(...),
                  product_category_id:int = Form(...),
                  product_name:str = Form(...),
                  product_description:str = Form(...),
-                 product_sell:str = Form(...),
+                 product_price:int = Form(...),
                  ):
     try:
         conn = connect()
@@ -58,7 +59,7 @@ async def insert(product_color_id :int = Form(...),
         sql = """
         insert into product (
         product_color_id, product_size_id, product_brand_id, product_category_id,
-        product_name, product_description, product_sell
+        product_name, product_description, product_price
         ) values (%s, %s, %s, %s, %s, %s, %s)
         """
         curs.execute(sql, (
@@ -68,7 +69,7 @@ async def insert(product_color_id :int = Form(...),
             product_category_id,
             product_name, 
             product_description, 
-            product_sell))
+            product_price))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -84,7 +85,7 @@ async def update(product_color_id :int = Form(...),
                  product_category_id:int = Form(...),
                  product_name:str = Form(...),
                  product_description:str = Form(...),
-                 product_sell:str = Form(...),
+                 product_price:int = Form(...),
                  product_id:int = Form(...)
                  ):
     try:
@@ -98,8 +99,8 @@ async def update(product_color_id :int = Form(...),
         product_category_id = %s,
         product_name = %s, 
         product_description = %s, 
-        product_sell = %s, 
-        where seq = %s
+        product_price = %s 
+        where product_id = %s
         '''
         curs.execute(sql, ( product_color_id, 
             product_size_id, 
@@ -107,7 +108,7 @@ async def update(product_color_id :int = Form(...),
             product_category_id,
             product_name, 
             product_description, 
-            product_sell,
+            product_price,
             product_id ))
         conn.commit()
         conn.close()
@@ -117,7 +118,7 @@ async def update(product_color_id :int = Form(...),
         print("Error ", e)
         return {"results" : "Error"} 
     
-@router.delete('/delete/{seq}')
+@router.delete('/delete/{product_id}')
 async def delete(product_id:int):
     try:
         conn = connect()
