@@ -5,6 +5,10 @@ from manufactureDB import router as manufacture_router
 from productDB import router as product_router
 from sizeDB import router as size_router
 from colorDB import router as color_router
+from customerDB import router as customer_router
+from withdrawDB import router as withdraw_router
+from obtainDB import router as obtain_router
+from employeeDB import router as employee_router
 
 
 app = FastAPI()
@@ -14,6 +18,10 @@ app.include_router(color_router,prefix='/color',tags=['color'])
 app.include_router(manufacture_router,prefix='/manufacture',tags=['manufacture'])
 app.include_router(product_router,prefix='/product',tags=['product'])
 app.include_router(size_router,prefix='/size',tags=['size'])
+app.include_router(customer_router,prefix='/customer',tags=['customer'])
+app.include_router(withdraw_router,prefix='/withdraw',tags=['withdraw'])
+app.include_router(obtain_router,prefix='/obtain',tags=['obtain'])
+app.include_router(employee_router,prefix='/employee',tags=['employee'])
 
 if __name__ == "__main__":
     import uvicorn
