@@ -1,20 +1,20 @@
-from fastapi import FastAPI, Form
+from fastapi import APIRouter, Form
 import pymysql
+router = APIRouter()
 
-fastAPIAddress = "127.0.0.1"
-dbAddress = "127.0.0.1"
-app = FastAPI()
+fastAPIAddress = "172.16.250.171"
+dbAddress = "172.16.250.171"
 
 def connect():
     return pymysql.connect(
         host=dbAddress,
         user="root",
         password="qwer1234",
-        database="test",
+        database="project_onandtap",
         charset="utf8"
     )
 
-@app.get('/select')
+@router.get('/select')
 async def select():
     conn = connect()
     curs = conn.cursor()    
@@ -27,7 +27,7 @@ async def select():
     result = [{'size_id' : row[0], 'size_name' : row[1]} for row in rows]
     return {'results' : result}
 
-@app.post('/insert')
+@router.post('/insert')
 async def insert(size_name :str = Form(...)):
     try:
         conn = connect()
@@ -42,7 +42,7 @@ async def insert(size_name :str = Form(...)):
         print("Error ", e)
         return {"results" : "Error"}  
     
-@app.post('/update')
+@router.post('/update')
 async def update(id:int = Form(...), size_name :str = Form(...)):
     try:
         conn = connect()
@@ -57,8 +57,7 @@ async def update(id:int = Form(...), size_name :str = Form(...)):
         print("Error ", e)
         return {"results" : "Error"} 
     
-@app.delete('/delete/{seq}')
-
+@router.delete('/delete/{seq}')
 async def delete(id:int):
     try:
         conn = connect()
@@ -71,8 +70,3 @@ async def delete(id:int):
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"}  
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host=fastAPIAddress, port=8000)
-
