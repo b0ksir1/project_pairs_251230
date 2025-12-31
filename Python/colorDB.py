@@ -1,17 +1,14 @@
 from fastapi import APIRouter, Form
 import pymysql
+import config
 router = APIRouter()
-
-fastAPIAddress = "172.16.250.171"
-dbAddress = "172.16.250.171"
-
 
 def connect():
     return pymysql.connect(
-        host=dbAddress,
-        user="root",
-        password="qwer1234",
-        database="project_onandtap",
+        host=config.DB_HOST,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD,
+        database=config.DB_NAME,
         charset="utf8"
     )
 
