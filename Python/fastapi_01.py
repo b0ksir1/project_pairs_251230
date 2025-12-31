@@ -1,0 +1,20 @@
+from fastapi import FastAPI
+from brandDB import router as brand_router
+from categoryDB import router as category_router
+from manufactureDB import router as manufacture_router
+from productDB import router as product_router
+from sizeDB import router as size_router
+from colorDB import router as color_router
+
+
+app = FastAPI()
+app.include_router(brand_router,prefix='/brand',tags=['brand'])
+app.include_router(category_router,prefix='/category',tags=['category'])
+app.include_router(color_router,prefix='/color',tags=['color'])
+app.include_router(manufacture_router,prefix='/manufacture',tags=['manufacture'])
+app.include_router(product_router,prefix='/product',tags=['product'])
+app.include_router(size_router,prefix='/size',tags=['size'])
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="172.16.250.194", port=8000)

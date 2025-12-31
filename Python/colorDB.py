@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form
 import pymysql
 router = APIRouter()
 
-fastAPIAddress = "172.16.250.171"
+fastAPIAddress = "172.16.250.194"
 dbAddress = "172.16.250.171"
 
 
