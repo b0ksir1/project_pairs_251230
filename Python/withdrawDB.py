@@ -3,6 +3,8 @@ import pymysql
 import config
 router = APIRouter()
 
+# 회원탈퇴는 insert만
+
 def connect():
     return pymysql.connect(
         host=config.DB_HOST,
@@ -17,21 +19,21 @@ async def select():
     conn = connect()
     curs = conn.cursor()    
     curs.execute(
-        'select customer_id, customer_email, customer_password, customer_name, customer_phone, customer_address, customer_signup_date, customer_withdraw_date from customer order by customer_name'
+        'select withdraw_id, withdraw_customer_id, withdraw_date from withdraw'
     )
     rows = curs.fetchall()
     conn.close()
 
-    result = [{'customer_id' : row[0], 'customer_email' : row[1], 'customer_password' : row[2], 'customer_name' : row[3], 'customer_phone' : row[4], 'customer_address' : row[5], 'customer_signup_date' : row[6], 'customer_withdraw_date' : row[7]} for row in rows]
+    result = [{'withdraw_id' : row[0], 'withdraw_customer_id' : row[1], 'withdraw_date' : row[2]} for row in rows]
     return {'results' : result}
 
 @router.post('/insert')
-async def insert(customer_email :str = Form(...), customer_password:str = Form(...), customer_name:str = Form(...), customer_phone:str = Form(...), customer_address:str = Form(...)):
+async def insert(withdraw_customer_id:int = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
-        sql = 'insert into customer (customer_email, customer_password, customer_name, customer_phone, customer_address, customer_signup_date) values (%s, %s, %s, %s, %s, now())'
-        curs.execute(sql, (customer_email, customer_password, customer_name, customer_phone, customer_address))
+        sql = 'insert into withdraw (withdraw_customer_id, withdraw_date) values (%s, now())'
+        curs.execute(sql, (withdraw_customer_id,))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -40,13 +42,12 @@ async def insert(customer_email :str = Form(...), customer_password:str = Form(.
         print("Error ", e)
         return {"results" : "Error"}  
     
-@router.post('/update')
-async def update(customer_email :str = Form(...), customer_password:str = Form(...), customer_name:str = Form(...), customer_phone:str = Form(...), customer_address:str = Form(...), customer_id :int = Form(...)):
+@router.delete('/delete/{seq}')             # 이거는 test용
+async def delete(id:int):
     try:
         conn = connect()
         curs = conn.cursor()
-        sql = 'update customer set customer_email = %s, customer_password = %s, customer_name =%s, customer_phone =%s, customer_address =%s where customer_id = %s'
-        curs.execute(sql, (customer_email,customer_password, customer_name,customer_phone,customer_address, customer_id))
+        curs.execute('delete from withdraw where withdraw_id = %s', (id,))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -54,18 +55,3 @@ async def update(customer_email :str = Form(...), customer_password:str = Form(.
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"} 
-    
-@router.delete('/delete/{seq}')
-async def delete(id:int):
-    try:
-        conn = connect()
-        curs = conn.cursor()
-        curs.execute('delete from customer where customer_id = %s', (id,))
-        conn.commit()
-        conn.close()
-        return {"results" : "OK"}
-
-    except Exception as e:
-        print("Error ", e)
-        return {"results" : "Error"}  
-

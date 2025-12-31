@@ -9,6 +9,8 @@ from customerDB import router as customer_router
 from withdrawDB import router as withdraw_router
 from obtainDB import router as obtain_router
 from employeeDB import router as employee_router
+from storeDB import router as store_router
+from imagesDB import router as image_router
 import config
 
 
@@ -23,6 +25,8 @@ app.include_router(customer_router,prefix='/customer',tags=['customer'])
 app.include_router(withdraw_router,prefix='/withdraw',tags=['withdraw'])
 app.include_router(obtain_router,prefix='/obtain',tags=['obtain'])
 app.include_router(employee_router,prefix='/employee',tags=['employee'])
+app.include_router(store_router,prefix='/store',tags=['store'])
+app.include_router(image_router,prefix='/images',tags=['images'])
 
 if __name__ == "__main__":
     import uvicorn
