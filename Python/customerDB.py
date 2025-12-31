@@ -12,6 +12,10 @@ def connect():
         charset="utf8"
     )
 
+
+
+
+
 @router.get('/select')
 async def select():
     conn = connect()
