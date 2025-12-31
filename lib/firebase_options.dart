@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -59,4 +56,14 @@ class DefaultFirebaseOptions {
     projectId: 'onandtap',
     storageBucket: 'onandtap.firebasestorage.app',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBzGyDzl1qAssTP6OyE8U0ANh7GsN80ynw',
+    appId: '1:213578777940:ios:f57a4e89307c4f598e34c1',
+    messagingSenderId: '213578777940',
+    projectId: 'onandtap',
+    storageBucket: 'onandtap.firebasestorage.app',
+    iosBundleId: 'com.example.projectPairs251230',
+  );
+
 }
