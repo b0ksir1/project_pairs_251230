@@ -45,7 +45,7 @@ async def update(id:int = Form(...), size_name :str = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
-        sql = 'update size set size_name = %s where seq = %s'
+        sql = 'update size set size_name = %s where size_id = %s'
         curs.execute(sql, (size_name, id))
         conn.commit()
         conn.close()
@@ -55,12 +55,12 @@ async def update(id:int = Form(...), size_name :str = Form(...)):
         print("Error ", e)
         return {"results" : "Error"} 
     
-@router.delete('/delete/{seq}')
-async def delete(id:int):
+@router.delete('/delete/{size_id}')
+async def delete(size_id:int):
     try:
         conn = connect()
         curs = conn.cursor()
-        curs.execute('delete from size where seq = %s', (id))
+        curs.execute('delete from size where size_id = %s', (size_id))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
