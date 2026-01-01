@@ -1,12 +1,12 @@
 class Product {
   int? product_id;         // auto increment
   String product_name;
-  String product_price;
+  int product_price;
   String product_description;
-  String product_color_id;
-  String product_size_id;
-  String product_category_id;
-  String product_brand_id;
+  int product_color_id;
+  int product_size_id;
+  int product_category_id;
+  int product_brand_id;
 
   Product(
     {
