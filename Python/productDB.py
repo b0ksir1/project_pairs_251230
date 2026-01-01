@@ -44,6 +44,38 @@ async def select():
                } for row in rows]
     return {'results' : result}
 
+@router.get('/select/{product_id}')
+async def select(product_id:int):
+    conn = connect()
+    curs = conn.cursor()    
+    curs.execute(
+        '''
+        select 
+        product_color_id, 
+        product_size_id, 
+        product_brand_id, 
+        product_category_id, 
+        product_name, 
+        product_description, 
+        product_price 
+        from product 
+        where product_id = %s
+    ''',(product_id)
+    )
+    rows = curs.fetchall()
+    conn.close()
+
+    result = [{
+               'product_color_id' : row[0], 
+               'product_size_id' : row[1], 
+               'product_brand_id' : row[2],
+               'product_category_id' : row[3],
+               'product_name' : row[4],
+               'product_description' : row[5],
+               'product_price' : row[6],
+               } for row in rows]
+    return {'results' : result}
+
 @router.post('/insert')
 async def insert(product_color_id :int = Form(...), 
                  product_size_id:int = Form(...), 
