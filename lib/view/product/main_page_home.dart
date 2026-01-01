@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/view/payment/product_data_test.dart';
 
 class MainPageHome extends StatefulWidget {
   const MainPageHome({super.key});
@@ -13,7 +14,7 @@ class MainPageHome extends StatefulWidget {
 class _MainPageHomeState extends State<MainPageHome> {
   // property
   final _dataList = [];
-  final urlPath = 'http://172.16.250.171:8001';
+  final urlPath = 'http://210.99.163.45:8000';
   @override
   void initState() {
     super.initState();
@@ -69,6 +70,7 @@ class _MainPageHomeState extends State<MainPageHome> {
                           TextButton(
                             onPressed: () {
                               // 쇼핑하기 버튼 누르면 어디로 갈지...
+                              Get.to(ProductDataTest());
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white,

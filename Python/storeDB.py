@@ -19,7 +19,6 @@ async def select():
     curs.execute("""
             select store_id, store_name, store_phone, store_lat, store_lng
             from store
-            order by store_name
             """
     )
     rows = curs.fetchall()
