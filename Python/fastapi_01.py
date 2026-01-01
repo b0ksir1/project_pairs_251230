@@ -18,6 +18,8 @@ from receiveDB import router as receive_router
 from returnsDB import router as return_router
 from stockDB import router as stock_router
 from storeDB import router as store_router
+from wishlistDB import router as wishlist_router
+from cartDB import router as cart_router
 import config
 
 
@@ -41,6 +43,8 @@ app.include_router(receive_router,prefix='/receive',tags=['receive'])
 app.include_router(return_router,prefix='/return',tags=['return'])
 app.include_router(stock_router,prefix='/stock',tags=['stock'])
 app.include_router(store_router,prefix='/store',tags=['store'])
+app.include_router(wishlist_router,prefix='/wishlist',tags=['wishlist'])
+app.include_router(cart_router,prefix='/cart',tags=['cart'])
 
 if __name__ == "__main__":
     import uvicorn
