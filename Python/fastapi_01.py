@@ -9,7 +9,6 @@ from customerDB import router as customer_router
 from withdrawDB import router as withdraw_router
 from obtainDB import router as obtain_router
 from employeeDB import router as employee_router
-from storeDB import router as store_router
 from imagesDB import router as image_router
 from approveDB import router as approve_router
 from ordersDB import router as orders_router
