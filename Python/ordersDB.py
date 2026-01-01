@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form
 import pymysql
 import config
 router = APIRouter()
-
+# 260101. 1월 2일 DB에서 orders_date를 datetime으로 수정
 def connect():
     return pymysql.connect(
         host=config.DB_HOST,
