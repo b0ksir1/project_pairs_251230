@@ -14,7 +14,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
       "name": "최신 스니커즈 출시 (한정판)",
       "size": "225",
       "price": 278000, // 단가
-      "qty": 1, // ✅ 수량 추가
+      "qty": 1, //  수량 추가
     },
   ];
 
@@ -23,7 +23,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
     for (final item in cartItems) {
       final int price = item["price"] as int;
       final int qty = item["qty"] as int;
-      sum += price * qty; // ✅ 단가 * 수량
+      sum += price * qty; //  단가 * 수량
     }
     return sum;
   }
@@ -81,7 +81,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
 
                 final int price = item["price"] as int;
                 final int qty = item["qty"] as int;
-                final int itemTotal = price * qty; // ✅ 아이템 결제금액
+                final int itemTotal = price * qty; //  아이템 결제금액
 
                 return Container(
                   padding: EdgeInsets.symmetric(vertical: 12),

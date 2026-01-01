@@ -154,5 +154,5 @@ class _WishListState extends State<WishList> {
         },
       ),
     );
-  }
-}
+  } //build
+} //class
