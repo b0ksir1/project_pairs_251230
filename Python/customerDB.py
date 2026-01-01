@@ -59,12 +59,12 @@ async def update(customer_email :str = Form(...), customer_password:str = Form(.
         print("Error ", e)
         return {"results" : "Error"} 
     
-@router.delete('/delete/{seq}')
-async def delete(id:int):
+@router.delete('/delete/{customer_id}')
+async def delete(customer_id:int):
     try:
         conn = connect()
         curs = conn.cursor()
-        curs.execute('delete from customer where customer_id = %s', (id,))
+        curs.execute('delete from customer where customer_id = %s', (customer_id,))
         conn.commit()
         conn.close()
         return {"results" : "OK"}

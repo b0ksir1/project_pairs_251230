@@ -31,7 +31,7 @@ async def insert(category_name :str = Form(...)):
         conn = connect()
         curs = conn.cursor()
         sql = 'insert into category (category_name) values (%s)'
-        curs.execute(sql, (category_name))
+        curs.execute(sql, (category_name,))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -41,12 +41,12 @@ async def insert(category_name :str = Form(...)):
         return {"results" : "Error"}  
     
 @router.post('/update')
-async def update(id:int = Form(...), category_name :str = Form(...)):
+async def update(category_id:int = Form(...), category_name :str = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
-        sql = 'update category set category_name = %s where seq = %s'
-        curs.execute(sql, (category_name, id))
+        sql = 'update category set category_name = %s where category_id = %s'
+        curs.execute(sql, (category_name, category_id))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -55,12 +55,12 @@ async def update(id:int = Form(...), category_name :str = Form(...)):
         print("Error ", e)
         return {"results" : "Error"} 
     
-@router.delete('/delete/{seq}')
-async def delete(id:int):
+@router.delete('/delete/{category_id}')
+async def delete(category_id:int):
     try:
         conn = connect()
         curs = conn.cursor()
-        curs.execute('delete from category where seq = %s', (id))
+        curs.execute('delete from category where category_id = %s', (category_id))
         conn.commit()
         conn.close()
         return {"results" : "OK"}

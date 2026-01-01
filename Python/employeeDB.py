@@ -27,8 +27,6 @@ async def select():
         employee_email,
         employee_password,
         employee_workplace
-         
-        , 
         from employee order by employee_name
     '''
     )
@@ -108,8 +106,8 @@ async def update(employee_role :int = Form(...),
         employee_phone = %s, 
         employee_email = %s, 
         employee_password = %s,
-        employee_workplace = %s,
-        where seq = %s
+        employee_workplace = %s
+        where employee_id = %s
         '''
         curs.execute(sql, ( employee_role, 
             employee_name, 
@@ -128,7 +126,7 @@ async def update(employee_role :int = Form(...),
         print("Error ", e)
         return {"results" : "Error"} 
     
-@router.delete('/delete/{seq}')
+@router.delete('/delete/{employee_id}')
 async def delete(employee_id:int):
     try:
         conn = connect()
