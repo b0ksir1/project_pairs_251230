@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/model/store.dart';
 import 'package:latlong2/latlong.dart' as latlng;
+import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/payment/payment_map.dart';
 // import 'package:shoes_store_app_project/model/product_model.dart';
 // import 'package:shoes_store_app_project/view/shop_select.dart';
@@ -15,8 +15,8 @@ import 'package:project_pairs_251230/view/payment/payment_map.dart';
 // ------------------------------------------------------------------
 // 주의: 아래 import 경로는 실제 프로젝트 구조에 맞게 수정해야 합니다.
 // ------------------------------------------------------------------
-// import '../util/controllers.dart'; 
-// import '../models/product_model.dart'; 
+// import '../util/controllers.dart';
+// import '../models/product_model.dart';
 // import 'shop_screen.dart'; // ShopSelectionScreen 위젯 경로
 // ------------------------------------------------------------------
 
@@ -29,24 +29,24 @@ class PaymentOptions extends StatefulWidget {
 
 class _PaymentOptionsState extends State<PaymentOptions> {
   // Property
-    final urlPath = 'http://210.99.163.45:8000';    // 자기 ip
-    late List<Store> storeData;  // 매장 data저장
-    late int product_id;
-    late String product_name;
-    late int product_size;
-    late int product_price;
-    late int product_image_seq;
-    late int customer_id;
-    late String customer_address;
-    var value = Get.arguments ?? "__";    // 0. 상품id , 1. 상품이름 , 2. 선택한 사이즈 , 
-                                          // 3. 상품가격 , 4. 이미지 seq번호 , 5. 고객id , 6. 고객 주소
-
+  final urlPath = 'http://210.99.163.45:8000'; // 자기 ip
+  late List<Store> storeData; // 매장 data저장
+  late int product_id;
+  late String product_name;
+  late int product_size;
+  late int product_price;
+  late int product_image_seq;
+  late int customer_id;
+  late String customer_address;
+  var value = Get.arguments ?? "__"; // 0. 상품id , 1. 상품이름 , 2. 선택한 사이즈 ,
+  // 3. 상품가격 , 4. 이미지 seq번호 , 5. 고객id , 6. 고객 주소
+  Message message = Message();
 
   // 상태 관리 변수
   Store? _selectedStore;
   String? _selectedPaymentMethod;
   latlng.LatLng? _userPos;
-  
+
   // 더미 데이터: 결제 수단
   final List<String> _paymentMethods = ['신용/체크카드', '픽업결제'];
 
@@ -74,7 +74,7 @@ class _PaymentOptionsState extends State<PaymentOptions> {
   //   // 결과가 StoreModel 타입의 Map으로 돌아왔다면 상태 업데이트
   //   if (selectedStoreMap != null && selectedStoreMap is Map<String, dynamic>) {
   //     setState(() {
-  //       _selectedStore = Store.fromMap(selectedStoreMap); 
+  //       _selectedStore = Store.fromMap(selectedStoreMap);
   //     });
   //     Get.snackbar("알림", "${_selectedStore!.name}이(가) 픽업 매장으로 선택되었습니다.",
   //       snackPosition: SnackPosition.BOTTOM,
@@ -93,14 +93,13 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     //     body: const Center(child: Text("주문할 상품 정보가 없습니다.")),
     //   );
     // }
-    
+
     // 합계 금액 계산 (CartController에서 price는 int로 저장됨)
     final double totalPrice = product_price.toDouble();
-    
+
     // 가격 포맷
     final priceFormatter = NumberFormat('#,###', 'ko_KR');
     final formattedPrice = priceFormatter.format(totalPrice);
-
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -146,7 +145,11 @@ class _PaymentOptionsState extends State<PaymentOptions> {
       centerTitle: true,
       title: const Text(
         "결제하기",
-        style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -154,8 +157,8 @@ class _PaymentOptionsState extends State<PaymentOptions> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.close, color: Colors.black), 
-          onPressed: () => Get.back(), 
+          icon: const Icon(Icons.close, color: Colors.black),
+          onPressed: () => Get.back(),
         ),
       ],
     );
@@ -181,7 +184,7 @@ class _PaymentOptionsState extends State<PaymentOptions> {
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
                   image: NetworkImage(
-                   '$urlPath/images/view/$product_image_seq?t=${DateTime.now().millisecondsSinceEpoch}'
+                    '$urlPath/images/view/$product_image_seq?t=${DateTime.now().millisecondsSinceEpoch}',
                   ),
                   fit: BoxFit.cover,
                 ),
@@ -195,7 +198,10 @@ class _PaymentOptionsState extends State<PaymentOptions> {
                 children: [
                   Text(
                     product_name,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -226,19 +232,19 @@ class _PaymentOptionsState extends State<PaymentOptions> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             TextButton.icon(
-              onPressed: () async{
+              onPressed: () async {
                 // 여기가 클릭하면 지도 나오는곳
                 Get.to(
                   PaymentMap(),
                   arguments: [
-                    storeData,          // 매장데이터
-                    _userPos,            // 고객 위치데이터
-                    _selectedStore      // 선택한 매장
-                  ]
+                    storeData, // 매장데이터
+                    _userPos, // 고객 위치데이터
+                    _selectedStore, // 선택한 매장
+                  ],
                 )!.then((value) {
                   _selectedStore = value;
                   setState(() {});
-                },);
+                });
               },
               icon: const Icon(Icons.map_outlined, size: 18),
               label: const Text("다른 매장 선택", style: TextStyle(fontSize: 14)),
@@ -247,20 +253,22 @@ class _PaymentOptionsState extends State<PaymentOptions> {
           ],
         ),
         const SizedBox(height: 12),
-        if (_selectedStore != null)
-          _buildStoreTile(_selectedStore!),
+        if (_selectedStore != null) _buildStoreTile(_selectedStore!),
       ],
     );
   }
 
   // 개별 매장 타일 위젯
   Widget _buildStoreTile(Store store) {
+    final meter =
+        (_userPos == null) // meter변환
+        ? null
+        : latlng.Distance()(
+            _userPos!,
+            latlng.LatLng(store.store_lat, store.store_lng),
+          );
 
-    final meter = (_userPos == null)     // meter변환
-    ? null
-    : latlng.Distance()(_userPos!, latlng.LatLng(store.store_lat, store.store_lng));
-
-    final km = meter == null ? null : meter / 1000.0;     // km 변환
+    final km = meter == null ? null : meter / 1000.0; // km 변환
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -279,7 +287,10 @@ class _PaymentOptionsState extends State<PaymentOptions> {
               children: [
                 Text(
                   store.store_name,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -300,7 +311,6 @@ class _PaymentOptionsState extends State<PaymentOptions> {
       ),
     );
   }
-
 
   // 3. 결제 수단 선택 위젯
   Widget _buildPaymentSelector() {
@@ -324,11 +334,16 @@ class _PaymentOptionsState extends State<PaymentOptions> {
               },
               contentPadding: EdgeInsets.zero,
               leading: Icon(
-                isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                isSelected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
                 color: isSelected ? Colors.black : Colors.grey,
               ),
               title: Text(method),
-              trailing: const Icon(Icons.keyboard_arrow_right, color: Colors.grey),
+              trailing: const Icon(
+                Icons.keyboard_arrow_right,
+                color: Colors.grey,
+              ),
             ),
           );
         }).toList(),
@@ -345,7 +360,10 @@ class _PaymentOptionsState extends State<PaymentOptions> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("상품 금액", style: TextStyle(fontSize: 16, color: Colors.grey)),
+              const Text(
+                "상품 금액",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
               Text("$formattedPrice원", style: const TextStyle(fontSize: 16)),
             ],
           ),
@@ -354,15 +372,28 @@ class _PaymentOptionsState extends State<PaymentOptions> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("배송비", style: TextStyle(fontSize: 16, color: Colors.grey)),
-              Text("무료", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                "무료",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ],
           ),
           const Divider(height: 30),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("최종 결제 금액", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text("$formattedPrice원", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red)),
+              const Text(
+                "최종 결제 금액",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "$formattedPrice원",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
             ],
           ),
         ],
@@ -398,23 +429,32 @@ class _PaymentOptionsState extends State<PaymentOptions> {
                 Get.snackbar("경고", "결제 수단을 선택해주세요.");
                 return;
               }
-              
-              Get.snackbar("결제 완료!", 
-                "${formattedPrice}원 결제가 ${_selectedPaymentMethod}으로 요청되었습니다.",
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.green,
-                colorText: Colors.white,
-              );
-              Navigator.pop(context); 
+
+              if (_selectedPaymentMethod != null && _selectedStore != null) {
+                Get.snackbar(
+                  "결제 완료!",
+                  "${formattedPrice}원 결제가 ${_selectedPaymentMethod}으로 요청되었습니다.",
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: Colors.green,
+                  colorText: Colors.white,
+                );
+                insertOrderAction();
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
               elevation: 0,
             ),
             child: Text(
               "${formattedPrice}원 결제하기",
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -422,7 +462,28 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     );
   }
 
-  //--------------------------------Functions-------------------------------- 
+  //--------------------------------Functions--------------------------------
+  Future<void> insertOrderAction()  async{
+    var request = http.MultipartRequest(
+      'POST', 
+      Uri.parse('$urlPath/orders/insert')
+    );
+    request.fields['orders_customer_id'] = customer_id.toString();
+    request.fields['orders_product_id'] = product_id.toString();
+    request.fields['orders_number'] = product_price.toString();   // price속성이 없어서 여기에다가 가격적음
+    request.fields['orders_quantity'] = 1.toString();       // 아직 장바구니구현안해서 구매하기만
+    request.fields['orders_payment'] = _selectedPaymentMethod.toString(); // 결제방법
+    request.fields['orders_store_id'] = _selectedStore!.store_id.toString();
+    request.fields['orders_employee_id'] = 1.toString();        // null값 = 아직 employee가 누구인지 모름
+
+    var res = await request.send();
+    if (res.statusCode == 200) {
+      message.showDialog("주문이 완료되었습니다.", "픽업 준비가 시작되면 알려드릴게요");
+    }else{
+      message.errorSnackBar("죄송합니다. 주문에 실패했습니다.", "주문에 실패했습니다. 다시 시도해 보세요.");
+    }
+  }
+
   Future<void> getStoredata() async {
     // Store 데이터 가져오기
     var url = Uri.parse("$urlPath/store/select");
@@ -439,11 +500,10 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     storeData = result.map((e) => Store.fromJson(e)).toList();
     getDistanceStore();
     setState(() {});
-  }  
+  }
 
   // 가까운 매장 순으로 정렬하기
-  Future<void> getDistanceStore() async{
-
+  Future<void> getDistanceStore() async {
     if (storeData.isEmpty) {
       return;
     }
@@ -452,37 +512,25 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     final userPos = await getCurrentLocation();
 
     storeData.sort((a, b) {
-      final da = distanceCalc(
-        userPos,
-        latlng.LatLng(a.store_lat, a.store_lng)
-      );
-      final db = distanceCalc(
-        userPos,
-        latlng.LatLng(b.store_lat, b.store_lng)
-      );
+      final da = distanceCalc(userPos, latlng.LatLng(a.store_lat, a.store_lng));
+      final db = distanceCalc(userPos, latlng.LatLng(b.store_lat, b.store_lng));
 
       return da.compareTo(db);
-    },);
+    });
 
     _selectedStore ??= storeData.first;
     _userPos = userPos;
 
     await getCurrentLocation();
     setState(() {});
-
   }
 
-  
   //주소로부터 위도 경도 추출하는 코드
   Future<latlng.LatLng> getCurrentLocation() async {
-
-    List<Location> locations = await locationFromAddress(
-      customer_address
-    );
+    List<Location> locations = await locationFromAddress(customer_address);
 
     final _latData = locations.first.latitude;
     final _lngData = locations.first.longitude;
-    return latlng.LatLng(_latData,_lngData);
-  } 
-
+    return latlng.LatLng(_latData, _lngData);
+  }
 } // class

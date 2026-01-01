@@ -5,7 +5,7 @@ import 'package:project_pairs_251230/model/store.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 import 'package:geolocator/geolocator.dart';
 // StoreModel 정의 파일 import 경로를 확인하세요. (OrderScreen과 동일 폴더에 있다고 가정)
-// import 'order.dart'; 
+// import 'order.dart';
 
 class PaymentMap extends StatefulWidget {
   const PaymentMap({super.key});
@@ -16,11 +16,11 @@ class PaymentMap extends StatefulWidget {
 
 class _PaymentMapState extends State<PaymentMap> {
   // Property
-  var value = Get.arguments ?? "__";    // 0. 매장 데이터 , 1. 고객 위치 , 2. 선택한 매장
-  late List<Store> storeData;
-  late latlng.LatLng customer_pos;
-  late MapController mapController;
-  
+  var value = Get.arguments ?? "__"; // 0. 매장 데이터 , 1. 고객 위치 , 2. 선택한 매장
+  late List<Store> storeData;         // 매장데이터
+  late latlng.LatLng customer_pos;    // 내 위치
+  late MapController mapController;   // 지도
+
   // 현재 선택된 매장 (초기에는 null)
   Store? _selectedStore;
 
@@ -33,7 +33,6 @@ class _PaymentMapState extends State<PaymentMap> {
     mapController = MapController();
     calculateStoreDistances(customer_pos);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +55,9 @@ class _PaymentMapState extends State<PaymentMap> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-                ...storeData.map((store) => 
-                  _buildStoreListTile(store)
-                ).toList(),
+                ...storeData
+                    .map((store) => _buildStoreListTile(store))
+                    .toList(),
                 const SizedBox(height: 20),
               ],
             ),
@@ -75,24 +74,26 @@ class _PaymentMapState extends State<PaymentMap> {
       elevation: 0,
       centerTitle: true,
       leading: IconButton(
-        onPressed:() =>  Get.back(result: _selectedStore), 
-        icon: Icon(Icons.arrow_back)
+        onPressed: () => Get.back(result: _selectedStore),
+        icon: Icon(Icons.arrow_back),
       ),
       title: const Text(
         "매장 찾기",
-        style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       actions: [
         IconButton(
           icon: const Icon(Icons.close, color: Colors.black), // 닫기(X) 버튼
-          onPressed: () => Get.back(
-            result: _selectedStore
-          ), // 화면 닫기
+          onPressed: () => Get.back(result: _selectedStore), // 화면 닫기
         ),
       ],
     );
   }
-  
+
   // 지도 더미 뷰
   Widget _buildMapView() {
     return Container(
@@ -122,7 +123,7 @@ class _PaymentMapState extends State<PaymentMap> {
             bottom: 10,
             right: 10,
             child: FloatingActionButton.extended(
-              onPressed: () async{
+              onPressed: () async {
                 Get.snackbar("알림", "현재 위치를 중심으로 매장을 검색합니다.");
                 try {
                   if (_selectedStore == null) {
@@ -137,7 +138,6 @@ class _PaymentMapState extends State<PaymentMap> {
                   setState(() {});
 
                   _fitToMyAndStore(myPos, _selectedStore!);
-
                 } catch (e) {
                   Get.snackbar("에러", e.toString());
                 }
@@ -147,7 +147,7 @@ class _PaymentMapState extends State<PaymentMap> {
               backgroundColor: Colors.black,
               foregroundColor: Colors.white,
             ),
-          )
+          ),
         ],
       ),
     );
@@ -156,7 +156,7 @@ class _PaymentMapState extends State<PaymentMap> {
   // 매장 목록 타일
   Widget _buildStoreListTile(Store store) {
     final isSelected = store.store_id == _selectedStore?.store_id;
-    
+
     return InkWell(
       onTap: () {
         _selectedStore = store;
@@ -165,9 +165,7 @@ class _PaymentMapState extends State<PaymentMap> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey.shade200),
-          ),
+          border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +181,10 @@ class _PaymentMapState extends State<PaymentMap> {
                 children: [
                   Text(
                     store.store_name,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -206,63 +207,56 @@ class _PaymentMapState extends State<PaymentMap> {
 
   //--------------------------------functions---------------------------------------
 
-  Future<latlng.LatLng> _getMyLocation() async {        // 위치 서비스
-  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    throw Exception("위치 서비스가 꺼져있음");
-  }
+  Future<latlng.LatLng> _getMyLocation() async {
+    // 위치 서비스
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception("위치 서비스가 꺼져있음");
+    }
 
-  LocationPermission permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-  }
-  if (permission == LocationPermission.deniedForever) {
-    throw Exception("위치 권한 영구 거절");
-  }
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception("위치 권한 영구 거절");
+    }
 
-  final pos = await Geolocator.getCurrentPosition(
-    desiredAccuracy: LocationAccuracy.high,
-  );
+    final pos = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
 
-  return latlng.LatLng(pos.latitude, pos.longitude);
-}
+    return latlng.LatLng(pos.latitude, pos.longitude);
+  }
 
   void _fitToMyAndStore(latlng.LatLng myPos, Store store) {
     final storePos = latlng.LatLng(store.store_lat, store.store_lng);
     final bounds = LatLngBounds.fromPoints([myPos, storePos]);
 
-    mapController.fitCamera(        // 카메라를 고객위치랑 매장위치 사이 고정
+    mapController.fitCamera(
+      // 카메라를 고객위치랑 매장위치 사이 고정
       CameraFit.bounds(
         bounds: bounds,
         padding: const EdgeInsets.all(60), // 화면 여백
       ),
     );
-}
-
-  
-  void calculateStoreDistances(latlng.LatLng userPos) {       // meter -> km
-  final distanceCalc = latlng.Distance();
-  for (final store in storeData) {
-    final meters = distanceCalc(
-      userPos,
-      latlng.LatLng(store.store_lat, store.store_lng),
-    );
-
-    store.km_distance = meters / 1000; // km
   }
-}
 
-double zoomFromKm(double km) {        // 거리에 따른 zoom
-  if (km < 0.5) return 16.5;
-  if (km < 2) return 14.5;
-  if (km < 5) return 13.5;
-  if (km < 15) return 12.0;
-  return 10.5;
-}
+  void calculateStoreDistances(latlng.LatLng userPos) {
+    // meter -> km
+    final distanceCalc = latlng.Distance();
+    for (final store in storeData) {
+      final meters = distanceCalc(
+        userPos,
+        latlng.LatLng(store.store_lat, store.store_lng),
+      );
 
+      store.km_distance = meters / 1000; // km
+    }
+  }
 
-
-  flutterMap(){                     // 지도맵
+  flutterMap() {
+    // 지도맵
     double initlat = 37.57;
     double initlng = 126.97;
     return FlutterMap(
@@ -270,7 +264,7 @@ double zoomFromKm(double km) {        // 거리에 따른 zoom
       options: MapOptions(
         // 초기위치 설정
         initialCenter: latlng.LatLng(initlat, initlng),
-        initialZoom: 17.0
+        initialZoom: 17.0,
       ),
       children: [
         TileLayer(
@@ -285,42 +279,54 @@ double zoomFromKm(double km) {        // 거리에 따른 zoom
           // 약간 카카오맵의 API키 제공받을때하는짓
           userAgentPackageName: "com.tj.gpsmapapp",
         ),
-         MarkerLayer(
-    markers: [
-      //내 위치 마커
-      Marker(
-        point: customer_pos,
-        width: 40,
-        height: 40,
-        child: const Icon(
-          Icons.my_location,
-          color: Colors.blue,
-          size: 30,
-        ),
-      ),
+        MarkerLayer(
+          markers: [
+            //내 위치 마커
+            Marker(
+              point: customer_pos,
+              width: 80,
+              height: 70,
+              child: Column(
+                children: [
+                  const Text(
+                    '내 위치',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const Icon(Icons.my_location, color: Colors.blue, size: 30),
+                ],
+              ),
+            ),
 
-      //선택된 매장 마커
-      if (_selectedStore != null)
-        Marker(
-          point: latlng.LatLng(
-            _selectedStore!.store_lat,
-            _selectedStore!.store_lng,
-          ),
-          width: 50,
-          height: 50,
-          child: const Icon(
-            Icons.location_pin,
-            color: Colors.red,
-            size: 40,
-          ),
+            //선택된 매장 마커
+            if (_selectedStore != null)
+              Marker(
+                point: latlng.LatLng(
+                  _selectedStore!.store_lat,
+                  _selectedStore!.store_lng,
+                ),
+                width: 80,
+                height: 70,
+                child: Column(
+                  children: [
+                     Text(
+                    '${_selectedStore!.store_name}매장',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                    const Icon(Icons.location_pin, color: Colors.red, size: 40),
+                  ],
+                ),
+              ),
+          ],
         ),
-    ],
-  ),
       ],
     );
-
-
-
   }
-
 } // class
