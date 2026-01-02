@@ -24,7 +24,6 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     super.initState();
     _controller = TextEditingController();
     
-    openDialog();
     // _messageList = values;
   }
 
@@ -41,15 +40,18 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                   .collection('chatting')
                   .doc(customerID)
                   .snapshots(),
-              builder: (context, snapshot) {
+                builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
                 } else {
+
                   final documents = snapshot.data!;
-                  final List dialogs = documents['dialog'] ?? [];
-                  return ListView(
-                    children: dialogs.map((e) => buildItemWidget(e)).toList(),
-                  );
+
+final List dialogs = documents['dialog'] ?? [];
+    // return Center(); 
+    return ListView(
+      children: dialogs.map((e) => buildItemWidget(e)).toList(),
+    );
                 }
               },
             ),
@@ -108,27 +110,51 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   // === Functions ===
 
-  Future openDialog() async
+  Widget showDialog(DocumentSnapshot documents)
   {
-    final docRef = FirebaseFirestore.instance
-    .collection('chatting')
-    .doc(customerID);
-
-    final docSnap = await docRef.get();
-
-    if (docSnap.exists) {
-      isHas = true;
-    } else {
-      final ref =  await FirebaseFirestore.instance.collection("chatting").doc(customerID).set({
-      'customerId' : customerID,
-            'startAt' : DateTime.now(),
-            'dialog': FieldValue.arrayUnion([])
-      })!.then((value) {
-        isHas = true;
-      },);
-    }
-   
+    final List dialogs = documents['dialog'] ?? [];
+    // return Center(); 
+    return ListView(
+      children: dialogs.map((e) => buildItemWidget(e)).toList(),
+    );
+                  
   }
+
+  // Future openDialog() async
+  // {
+  //   final docRef = FirebaseFirestore.instance
+  //   .collection('chatting')
+  //   .doc(customerID);
+
+  //   final docSnap = await docRef.get();
+
+  //   if (docSnap.exists) {
+  //     isHas = true;
+  //   } else {
+
+
+  //     final ref =  await FirebaseFirestore.instance.collection("chatting").doc(customerID).set({
+  //       'customerId' : customerID,
+  //       'startAt' : DateTime.now().toString(),
+
+  //           'dialog': FieldValue.arrayUnion(
+  //             [
+  //              {'date': DateTime.now().toString(),
+  //         'message': _controller.text.trim(),
+  //         'talker': 'customer'} 
+  //           ]
+  //           )
+  //     })!.then((value) {
+
+
+        
+  //       isHas = true;
+  //     },);
+  //   }
+
+    
+   
+  // }
 
   Future sendMessage() async{
     await FirebaseFirestore.instance
@@ -137,7 +163,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     .update({
     'dialog': FieldValue.arrayUnion([
       {
-        'date': Timestamp.now().toString().substring(0,10),
+        'date': DateTime.now().toString(),
         'message': _controller.text.trim(),
         'talker': 'customer',
       }
