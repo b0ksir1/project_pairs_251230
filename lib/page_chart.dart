@@ -22,6 +22,7 @@ import 'package:project_pairs_251230/view/order/order_detail.dart';
 import 'package:project_pairs_251230/view/order/order_history.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
 import 'package:project_pairs_251230/view/order/wish_list.dart';
+import 'package:project_pairs_251230/view/payment/payment_map.dart';
 import 'package:project_pairs_251230/view/product/product_detail.dart';
 import 'package:project_pairs_251230/view/user/my_page.dart';
 
@@ -78,9 +79,7 @@ class _PageChartState extends State<PageChart> {
                           child: Text('구매 상세 페이지'),
                         ),
                         TextButton(
-                          onPressed: () {
-                            //
-                          },
+                          onPressed: () => Get.to(PaymentMap()),
                           child: Text('결제 할 때 지도 보여주기'),
                         ),
                         TextButton(
