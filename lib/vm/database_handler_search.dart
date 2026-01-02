@@ -26,7 +26,7 @@ class DatabaseHandlerSearch {
   Future<List<String>> querySearch(int id) async{
     final Database db = await initializeDB();
     final List<Map<String, Object?>> queryResults = await db. rawQuery(
-      'select * from search where customer_id = ? limit 4',
+      'select * from search where customer_id = ? order by id desc limit 4',
       [id]
     );
     return queryResults.map((e) => e['context'] as String).toList();
