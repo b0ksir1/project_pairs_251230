@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:project_pairs_251230/page_chart.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
 import 'package:project_pairs_251230/view/product/main_page_home.dart';
+import 'package:project_pairs_251230/view/user/my_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -51,7 +52,7 @@ class _MainPageState extends State<MainPage>
           ShoppingCart(),
           ShoppingCart(),
           ShoppingCart(),
-          ShoppingCart(),
+          MyPage(),
         ],
       ),
       bottomNavigationBar: Container(
