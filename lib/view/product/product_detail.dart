@@ -440,7 +440,7 @@ class _ProductDetailState extends State<ProductDetail> {
         ),
       ],
     );
-  }
+  } // build
 
   // 장바구니/구매/위시 버튼
   Widget _buildActionButtons() {

@@ -22,7 +22,6 @@ async def select():
         obtain_approve_id,
         obtain_employee_id,
         obtain_date
-        , 
         from obtain 
     '''
     )
