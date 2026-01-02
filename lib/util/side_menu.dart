@@ -3,6 +3,7 @@ enum SideMenu {
   product, // 상품 등록
   orders, // 구매 내역 
   returns, // 반품 내역
+  delivery, // 대리점 발송
   stock, // 재고 확인
   sales, // 매출 확인
   procure, // 발주 페이지

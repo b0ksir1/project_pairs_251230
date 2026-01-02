@@ -38,155 +38,157 @@ class _PageChartState extends State<PageChart> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 70, 10, 10),
       child: Scaffold(
-        body: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 180,
-                  child: Column(
-                    children: [
-                      Text('앱 화면'),
-                      TextButton(
-                        onPressed: () => Get.to(CustomerLogin()),
-                        child: Text('로그인(고객)'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(SignUp()),
-                        child: Text('회원가입'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(ProfileEdit()),
-                        child: Text('회원 정보 수정'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(MyPage()),
-                        child: Text('마이 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(ProductDetail()),
-                        child: Text('상품 상세 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(OrderHistory()),
-                        child: Text('구매 내역'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(OrderDetail()),
-                        child: Text('구매 상세 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          //
-                        },
-                        child: Text('결제 할 때 지도 보여주기'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          //
-                        },
-                        child: Text('결제 방법, 픽업 지역 선택'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(CategoryList()),
-                        child: Text('카테고리'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          //
-                        },
-                        child: Text('채팅 리스트'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          //
-                        },
-                        child: Text('채팅 화면'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(CustomerBoard()),
-                        child: Text('게시판 확인'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(ShoppingCart()),
-                        child: Text('장바구니'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(WishList()),
-                        child: Text('위시 리스트'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          //
-                        },
-                        child: Text('결제 완료 화면'),
-                      ),
-                    ],
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 180,
+                    child: Column(
+                      children: [
+                        Text('앱 화면'),
+                        TextButton(
+                          onPressed: () => Get.to(CustomerLogin()),
+                          child: Text('로그인(고객)'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(SignUp()),
+                          child: Text('회원가입'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(ProfileEdit()),
+                          child: Text('회원 정보 수정'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(MyPage()),
+                          child: Text('마이 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(ProductDetail()),
+                          child: Text('상품 상세 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(OrderHistory()),
+                          child: Text('구매 내역'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(OrderDetail()),
+                          child: Text('구매 상세 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            //
+                          },
+                          child: Text('결제 할 때 지도 보여주기'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            //
+                          },
+                          child: Text('결제 방법, 픽업 지역 선택'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(CategoryList()),
+                          child: Text('카테고리'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            //
+                          },
+                          child: Text('채팅 리스트'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            //
+                          },
+                          child: Text('채팅 화면'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(CustomerBoard()),
+                          child: Text('게시판 확인'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(ShoppingCart()),
+                          child: Text('장바구니'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(WishList()),
+                          child: Text('위시 리스트'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            //
+                          },
+                          child: Text('결제 완료 화면'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 180,
-                  child: Column(
-                    children: [
-                      Text('태블릿 화면'),
-                      TextButton(
-                        onPressed: () => Get.to(AdminLogin()),
-                        child: Text('관리자 로그인'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminDashboard()),
-                        child: Text('관리자 대시보드'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminInsertProduct()),
-                        child: Text('상품 등록'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminPurchaseManage()),
-                        child: Text('구매 내역 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminReturnProduct()),
-                        child: Text('반품 내역 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminStockList()),
-                        child: Text('재고 확인 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminSalesChart()),
-                        child: Text('매출 확인 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminDeliveryProduct()),
-                        child: Text('대리점 발송 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminPurchaseOrder()),
-                        child: Text('발주 신청 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminSalesOrder()),
-                        child: Text('수주 신청 페이지'),
-                      ),
-                      TextButton(onPressed: () {}, child: Text('채팅 리스트 페이지')),
-                      TextButton(onPressed: () {}, child: Text('채팅 답변')),
-                      TextButton(onPressed: () {}, child: Text('게시판')),
-                      TextButton(
-                        onPressed: () => Get.to(AdminApprovalRequest()),
-                        child: Text('품의 요청 페이지'),
-                      ),
-                      TextButton(
-                        onPressed: () => Get.to(AdminApprovalConfirm()),
-                        child: Text('품의 확인 페이지'),
-                      ),
-                    ],
+                  SizedBox(
+                    width: 180,
+                    child: Column(
+                      children: [
+                        Text('태블릿 화면'),
+                        TextButton(
+                          onPressed: () => Get.to(AdminLogin()),
+                          child: Text('관리자 로그인'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminDashboard()),
+                          child: Text('관리자 대시보드'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminInsertProduct()),
+                          child: Text('상품 등록'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminPurchaseManage()),
+                          child: Text('구매 내역 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminReturnProduct()),
+                          child: Text('반품 내역 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminStockList()),
+                          child: Text('재고 확인 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminSalesChart()),
+                          child: Text('매출 확인 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminDeliveryProduct()),
+                          child: Text('대리점 발송 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminPurchaseOrder()),
+                          child: Text('발주 신청 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminSalesOrder()),
+                          child: Text('수주 신청 페이지'),
+                        ),
+                        TextButton(onPressed: () {}, child: Text('채팅 리스트 페이지')),
+                        TextButton(onPressed: () {}, child: Text('채팅 답변')),
+                        TextButton(onPressed: () {}, child: Text('게시판')),
+                        TextButton(
+                          onPressed: () => Get.to(AdminApprovalRequest()),
+                          child: Text('품의 요청 페이지'),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(AdminApprovalConfirm()),
+                          child: Text('품의 확인 페이지'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:project_pairs_251230/util/side_menu.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_request.dart';
 import 'package:project_pairs_251230/view/admin/admin_board.dart';
 import 'package:project_pairs_251230/view/admin/admin_dashboard.dart';
+import 'package:project_pairs_251230/view/admin/admin_delivery_product.dart';
 import 'package:project_pairs_251230/view/admin/admin_insert_product.dart';
 import 'package:project_pairs_251230/view/admin/admin_purchase_manage.dart';
 import 'package:project_pairs_251230/view/admin/admin_purchase_order.dart';
@@ -46,6 +47,14 @@ class AdminSideBar extends StatelessWidget {
             selected: selectedMenu == SideMenu.product,
             onTap: () {
               Get.to(AdminInsertProduct());
+            },
+          ),
+          AdminSideItem(
+            icon: Icons.view_in_ar_rounded,
+            text: '대리점 발송',
+            selected: selectedMenu == SideMenu.delivery,
+            onTap: () {
+              Get.to(AdminDeliveryProduct());
             },
           ),
           AdminSideItem(

@@ -29,6 +29,22 @@ async def select():
     result = [{'stock_id' : row[0], 'stock_update' : row[1], 'stock_quantity' : row[2], 'stock_product_id' : row[3]} for row in rows]
     return {'results' : result}
 
+@router.get('/selectQty/{product_id}')
+async def selectQty(product_id:int):
+    conn = connect()
+    curs = conn.cursor()
+    curs.execute("""
+            select stock_quantity
+            from stock
+            where stock_product_id = %s
+            """, (product_id)
+    )
+    row = curs.fetchone()
+    conn.close()
+
+    # result = row
+    return {'results' : row}
+
 @router.get('/selectAll')
 async def SelectAll():
     try:
