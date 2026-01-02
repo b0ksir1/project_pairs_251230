@@ -15,13 +15,16 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   late TextEditingController _controller;
 
-  String _id = Get.arguments ?? "__";
+  bool isHas = false;
+
+  // String _id = Get.arguments ?? "__";
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
-
+    
+    openDialog();
     // _messageList = values;
   }
 
@@ -36,7 +39,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('chatting')
-                  .doc(_id)
+                  .doc(customerID)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -105,10 +108,32 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   // === Functions ===
 
+  Future openDialog() async
+  {
+    final docRef = FirebaseFirestore.instance
+    .collection('chatting')
+    .doc(customerID);
+
+    final docSnap = await docRef.get();
+
+    if (docSnap.exists) {
+      isHas = true;
+    } else {
+      final ref =  await FirebaseFirestore.instance.collection("chatting").doc(customerID).set({
+      'customerId' : customerID,
+            'startAt' : DateTime.now(),
+            'dialog': FieldValue.arrayUnion([])
+      })!.then((value) {
+        isHas = true;
+      },);
+    }
+   
+  }
+
   Future sendMessage() async{
     await FirebaseFirestore.instance
     .collection("chatting")
-    .doc(_id)
+    .doc(customerID)
     .update({
     'dialog': FieldValue.arrayUnion([
       {

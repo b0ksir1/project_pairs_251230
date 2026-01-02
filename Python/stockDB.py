@@ -19,7 +19,6 @@ async def select():
     curs = conn.cursor()
     curs.execute("""
             select stock_id, stock_update, stock_quantity, stock_product_id
-            select stock_id, stock_update, stock_quantity, stock_product_id
             from stock
             """
     )
@@ -72,7 +71,6 @@ async def insert(stock_quantity : int = Form(...), stock_product_id : int = Form
         curs = conn.cursor()
         sql = """
             insert into stock
-            (stock_update, stock_quantity, stock_product_id)
             (stock_update, stock_quantity, stock_product_id)
             values
             (now(), %s, %s)
