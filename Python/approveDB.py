@@ -2,7 +2,8 @@ from fastapi import APIRouter, Form
 import pymysql
 import config
 router = APIRouter()
-
+# 260101. 1월 2일 DB에서 approve_senior_id, approve_director_id int로 추가// 260102.반영 완료
+# 260101. 1월 2일 DB에서 approve_senior_assign_date, approve_director_assign_date date로 추가// 260102.반영 완료
 def connect():
     return pymysql.connect(
         host=config.DB_HOST,
@@ -23,9 +24,11 @@ async def select():
         approve_employee_id, 
         approve_product_id, 
         approve_senior_id,
+        approve_director_id,
         approve_quantity,
-        approve_assign_date,
-        approve_date 
+        approve_date, 
+        approve_senior_assign_date,
+        approve_director_assign_date
         from approve
          
     '''
@@ -37,9 +40,11 @@ async def select():
                'approve_employee_id' : row[1], 
                'approve_product_id' : row[2], 
                'approve_senior_id' : row[3],
-               'approve_quantity' : row[4],
-               'approve_assign_date' : row[5],
+               'approve_director_id' : row[4],
+               'approve_quantity' : row[5],
                'approve_date' : row[6],
+               'approve_senior_assign_date' : row[7],
+               'approve_director_assign_date' : row[8],
                } for row in rows]
     return {'results' : result}
 
@@ -47,6 +52,7 @@ async def select():
 async def insert(approve_employee_id:int = Form(...), 
                  approve_product_id:int = Form(...), 
                  approve_senior_id:int = Form(...),
+                 approve_director_id:int = Form(...),
                  approve_quantity:int = Form(...),
                  ):
     try:
@@ -54,13 +60,19 @@ async def insert(approve_employee_id:int = Form(...),
         curs = conn.cursor()
         sql = """
         insert into approve (
-        approve_employee_id,approve_product_id,approve_senior_id,approve_quantity,approve_assign_date,approve_date
-                ) values (%s, %s, %s, %s, now(), now() )
+        approve_employee_id,
+        approve_product_id,
+        approve_senior_id,
+        approve_director_id,
+        approve_quantity,
+        approve_date
+                ) values (%s, %s, %s, %s, %s, now() )
         """
         curs.execute(sql, (
             approve_employee_id, 
             approve_product_id, 
-            approve_senior_id, 
+            approve_senior_id,
+            approve_director_id, 
             approve_quantity
             ))
         conn.commit()
