@@ -93,31 +93,7 @@ async def insert(
         return {"results": "Error"}
 
 
-@router.post('/update')
-async def update(
-    wishlist_id: int = Form(...),
-    wishlist_customer_id: int = Form(...),
-    wishlist_product_id: int = Form(...)
-):
-    try:
-        conn = connect()
-        curs = conn.cursor()
 
-        sql = """
-        UPDATE wishlist
-        SET wishlist_customer_id = %s,
-            wishlist_product_id = %s
-        WHERE wishlist_id = %s
-        """
-        curs.execute(sql, (wishlist_customer_id, wishlist_product_id, wishlist_id))
-        conn.commit()
-        conn.close()
-
-        return {"results": "OK"}
-
-    except Exception as e:
-        print("Error ", e)
-        return {"results": "Error"}
 
 
 @router.delete('/delete/{wishlist_id}')
