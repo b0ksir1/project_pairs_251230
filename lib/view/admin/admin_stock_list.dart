@@ -1,8 +1,5 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:project_pairs_251230/model/stock.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
@@ -17,6 +14,7 @@ class AdminStockList extends StatefulWidget {
 }
 
 class _AdminStockListState extends State<AdminStockList> {
+  // === Property ===
   String imageUrl = "${GlobalData.url}/images/view";
   String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
 
@@ -30,7 +28,7 @@ class _AdminStockListState extends State<AdminStockList> {
     getProductData();
   }
 
-  // === Property ===
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,7 +135,7 @@ class _AdminStockListState extends State<AdminStockList> {
     var url = Uri.parse(stockSelectAllUrl);
     var response = await http.get(url);
 
-    print(response.body);
+    // print(response.body);
 
     if (response.statusCode == 200) {
       _stockList.clear();
