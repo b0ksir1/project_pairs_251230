@@ -109,7 +109,7 @@ class _AdminChatState extends State<AdminChat> {
     await FirebaseFirestore.instance.collection("chatting").doc(_id).update({
       'dialog': FieldValue.arrayUnion([
         {
-          'date': Timestamp.now().toString().substring(0, 10),
+          'date': DateTime.now().toString(),
           'message': _controller.text.trim(),
           'talker': 'employee',
         },
