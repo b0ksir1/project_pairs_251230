@@ -41,7 +41,6 @@ app.include_router(procure_router,prefix='/procure',tags=['procure'])
 app.include_router(receive_router,prefix='/receive',tags=['receive'])
 app.include_router(return_router,prefix='/return',tags=['return'])
 app.include_router(stock_router,prefix='/stock',tags=['stock'])
-app.include_router(store_router,prefix='/store',tags=['store'])
 app.include_router(wishlist_router,prefix='/wishlist',tags=['wishlist'])
 app.include_router(cart_router,prefix='/cart',tags=['cart'])
 
