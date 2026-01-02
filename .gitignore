@@ -349,4 +349,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# local env
+lib/util/global_data.dart
+Python/config.py
+*.pyc
+
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,flutter,android,dart,visualstudiocode,node
