@@ -44,35 +44,39 @@ async def select():
                } for row in rows]
     return {'results' : result}
 
-@router.get('/select/{product_id}')
-async def select(product_id:int):
+@router.get('/selectAll')       # 제품정보 다가져올려고 하나 만듬(반드시 workbench에 쿼리문 적어서 확인)
+async def select():
     conn = connect()
     curs = conn.cursor()    
     curs.execute(
-        '''
-        select 
-        product_color_id, 
-        product_size_id, 
-        product_brand_id, 
-        product_category_id, 
-        product_name, 
-        product_description, 
-        product_price 
-        from product 
-        where product_id = %s
-    ''',(product_id)
+    '''
+    select p.product_id, p.product_name, p.product_price , p.product_description , c.color_name as product_color, b.brand_name as product_brand, 
+    cg.category_name as product_category, s.size_name as product_size, 
+    stock.stock_quantity from product as p
+	    inner join color as c
+		    on c.color_id = p.product_color_id
+	    inner join brand as b
+		    on b.brand_id = p.product_brand_id
+	    inner join category as cg
+		    on cg.category_id = p.product_category_id
+	    inner join size as s
+		    on s.size_id = p.product_size_id
+        inner join stock
+            on stock.stock_product_id = p.product_id
+    '''
     )
     rows = curs.fetchall()
     conn.close()
 
-    result = [{
-               'product_color_id' : row[0], 
-               'product_size_id' : row[1], 
-               'product_brand_id' : row[2],
-               'product_category_id' : row[3],
-               'product_name' : row[4],
-               'product_description' : row[5],
-               'product_price' : row[6],
+    result = [{'product_id' : row[0], 
+               'product_name' : row[1], 
+               'product_price' : row[2], 
+               'product_description' : row[3],
+               'product_color' : row[4],
+               'product_brand' : row[5],
+               'product_category' : row[6],
+               'product_size' : row[7],
+               'stock_quantity' : row[8],
                } for row in rows]
     return {'results' : result}
 

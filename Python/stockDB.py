@@ -19,13 +19,14 @@ async def select():
     curs = conn.cursor()
     curs.execute("""
             select stock_id, stock_update, stock_quantity, stock_product_id
+            select stock_id, stock_update, stock_quantity, stock_product_id
             from stock
             """
     )
     rows = curs.fetchall()
     conn.close()
 
-    result = [{'stock_id' : row[0], 'stock_update' : row[1], 'stock_quantity' : row[2], 'product_id' : row[3]} for row in rows]
+    result = [{'stock_id' : row[0], 'stock_update' : row[1], 'stock_quantity' : row[2], 'stock_product_id' : row[3]} for row in rows]
     return {'results' : result}
 
 @router.get('/selectQty/{product_id}')
@@ -65,17 +66,18 @@ async def SelectAll():
         conn.close()
 
 @router.post('/insert')
-async def insert(stock_quantity : int = Form(...), product_id : int = Form(...)):
+async def insert(stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
         sql = """
             insert into stock
             (stock_update, stock_quantity, stock_product_id)
+            (stock_update, stock_quantity, stock_product_id)
             values
             (now(), %s, %s)
             """
-        curs.execute(sql, (stock_quantity, product_id))
+        curs.execute(sql, (stock_quantity, stock_product_id))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -85,16 +87,16 @@ async def insert(stock_quantity : int = Form(...), product_id : int = Form(...))
         return {"results" : "Error"}  
     
 @router.post('/update')
-async def update(stock_id : int = Form(...), stock_quantity : int = Form(...)):
+async def update(stock_id : int = Form(...), stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
         sql = """
             update stock
-            set stock_quantity = %s
+            set stock_quantity = %s, stock_product_id = %s
             where stock_id = %s
             """
-        curs.execute(sql, (stock_quantity, stock_id))
+        curs.execute(sql, (stock_quantity, stock_product_id, stock_id))
         conn.commit()
         conn.close()
         return {'results' : "OK"}

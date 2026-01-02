@@ -21,7 +21,7 @@ async def select():
     conn = connect()
     curs = conn.cursor()    
     curs.execute(
-        'select customer_id, customer_email, customer_password, customer_name, customer_phone, customer_address, customer_signup_date, customer_withdraw_date from customer order by customer_name'
+        'select customer_id, customer_email, customer_password, customer_name, customer_phone, customer_address, customer_signup_date, customer_withdraw_date from customer'
     )
     rows = curs.fetchall()
     conn.close()
