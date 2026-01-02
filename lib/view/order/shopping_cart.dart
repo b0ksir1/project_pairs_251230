@@ -22,27 +22,40 @@ class _ShoppingCartState extends State<ShoppingCart> {
   @override
   void initState() {
     super.initState();
+    customerId = _resolveCustomerId();
     fetchCart();
   }
 
-  Future<void> fetchCart() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
+  int _resolveCustomerId() {
+    final args = Get.arguments;
 
-      var url = Uri.parse("$baseUrl/cart/select/$customerId");
-      var res = await http.get(url);
+    if (args is int) return args;
+    if (args is Map) {
+      final v = args["customerId"];
+      if (v is int) return v;
+      return int.tryParse("$v") ?? 1;
+    }
+    return 1;
+  }
+
+  Future<void> fetchCart() async {
+    if (!mounted) return;
+    setState(() => isLoading = true);
+
+    try {
+      final url = Uri.parse("$baseUrl/cart/select/$customerId");
+      final res = await http.get(url);
+
       if (!mounted) return;
+
       if (res.statusCode != 200) {
         throw Exception("서버 응답 오류: ${res.statusCode}");
       }
-      debugPrint("GET => $baseUrl/cart/select/$customerId");
 
-      var data = json.decode(res.body);
-      var list = (data["results"] as List?) ?? [];
+      final data = json.decode(res.body);
+      final list = (data["results"] as List?) ?? [];
 
-      List<Map<String, dynamic>> parsed = [];
+      final List<Map<String, dynamic>> parsed = [];
       for (final x in list) {
         final m = x as Map<String, dynamic>;
         parsed.add({
@@ -59,14 +72,14 @@ class _ShoppingCartState extends State<ShoppingCart> {
         });
       }
 
+      if (!mounted) return; // ✅ 마지막 setState 직전
       setState(() {
         cartItems = parsed;
         isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      if (!mounted) return; // ✅ catch에서도
+      setState(() => isLoading = false);
       Get.snackbar("장바구니", "불러오기 실패: $e");
     }
   }
