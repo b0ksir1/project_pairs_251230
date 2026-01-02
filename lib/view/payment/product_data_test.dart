@@ -28,7 +28,7 @@ class _ProductDataTestState extends State<ProductDataTest> {
   String? _selectedSize;  // 현재 선택된 사이즈
 
   bool _isInitLoading = true; // 초기 로딩 여부
-  final urlPath = 'http://210.99.163.45:8000';
+  final urlPath = 'http://172.16.250.179:8000';
 
   @override
   void initState() {

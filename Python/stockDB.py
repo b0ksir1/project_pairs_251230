@@ -24,7 +24,7 @@ async def select():
     rows = curs.fetchall()
     conn.close()
 
-    result = [{'stock_id' : row[0], 'stock_update' : row[1], 'stock_quantity' : row[3], 'stock_product_id' : row[4]} for row in rows]
+    result = [{'stock_id' : row[0], 'stock_update' : row[1], 'stock_quantity' : row[2], 'stock_product_id' : row[3]} for row in rows]
     return {'results' : result}
 
 @router.post('/insert')

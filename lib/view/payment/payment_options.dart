@@ -29,7 +29,7 @@ class PaymentOptions extends StatefulWidget {
 
 class _PaymentOptionsState extends State<PaymentOptions> {
   // Property
-  final urlPath = 'http://210.99.163.45:8000'; // 자기 ip
+  final urlPath = 'http://172.16.250.179:8000'; // 자기 ip
   late List<Store> storeData; // 매장 data저장
   late int product_id;
   late String product_name;
