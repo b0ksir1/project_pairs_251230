@@ -1,10 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:project_pairs_251230/model/stock.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
@@ -15,14 +11,12 @@ class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
   @override
-  State<AdminDashboard> createState() =>
-      _AdminDashboardState();
+  State<AdminDashboard> createState() => _AdminDashboardState();
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
   String imageUrl = "${GlobalData.url}/images/view";
-  String stockSelectAllUrl =
-      "${GlobalData.url}/stock/selectAll";
+  String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
 
   late List<Stock> _stockList;
 
@@ -30,11 +24,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   void initState() {
     super.initState();
     _stockList = [];
-
     getProductData();
   }
 
-  // === Property ===
+  // ===================== UI =====================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,10 +39,75 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           Expanded(
             child: _stockList.isEmpty
-                ? Center(child: Text('데이터가 비어있음'))
+                ? const Center(child: Text('데이터가 비어있음'))
                 : Column(
                     children: [
-                      Text('Dashboard Overview'),
+                      // ===== Dashboard =====
+                      const Text('Dashboard Overview'),
+                      const Text('dashboard overview'),
+                      const Text('welcome back, here`s happening today'),
+
+                      const SizedBox(height: 20),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 100,
+                        child: Row(
+                          children: const [
+                            Icon(Icons.attach_money_outlined),
+                            SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [Text('매출'), Text('금액 나오는 곳')],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 400,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Top Selling Shoes'),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Row(
+                                    children: [
+                                      Image.asset(
+                                        'images/dog1.png',
+                                        width: 80,
+                                        height: 80,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: const [
+                                          Text('제품 이름'),
+                                          Text('제품 색상'),
+                                          Text('제품 브랜드'),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 20),
+                                      const Text('제품 판매 수'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // ===== 상품 목록 =====
                       _buildHead(),
                       _buildListView(),
                     ],
@@ -58,71 +116,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ],
       ),
     );
-  } // build
-
-  // === Widget ===
-
-  Widget _buildListView() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: _stockList.length,
-        itemBuilder: (context, index) {
-          return Card(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(width: 15),
-                SizedBox(
-                  width:
-                      MediaQuery.of(context).size.width *
-                      0.15,
-                  child: Text(
-                    _stockList[index].productName,
-                    style: bodyStyle(),
-                  ),
-                ),
-                SizedBox(
-                  width:
-                      MediaQuery.of(context).size.width *
-                      0.3,
-                  child: Image.network(
-                    '${GlobalData.url}/images/view/${_stockList[index].productId}?t=${DateTime.now().millisecondsSinceEpoch}',
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                SizedBox(
-                  width:
-                      MediaQuery.of(context).size.width *
-                      0.1,
-                  child: Text(
-                    _stockList[index].productQty
-                        .toString(),
-                    style: bodyStyle(),
-                  ),
-                ),
-                SizedBox(
-                  width:
-                      MediaQuery.of(context).size.width *
-                      0.1,
-                  child: Text(
-                    '상품 상태',
-                    style: bodyStyle(),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
   }
+
+  // ===================== Widgets =====================
 
   Widget _buildHead() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        SizedBox(width: 15),
+        const SizedBox(width: 15),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
           child: Text('상품명', style: headerStyle()),
@@ -143,8 +144,49 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  Widget _buildListView() {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: _stockList.length,
+        itemBuilder: (context, index) {
+          final stock = _stockList[index];
+
+          return Card(
+            child: Row(
+              children: [
+                const SizedBox(width: 15),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.15,
+                  child: Text(stock.productName, style: bodyStyle()),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  child: Image.network(
+                    '${GlobalData.url}/images/view/${stock.productId}?t=${DateTime.now().millisecondsSinceEpoch}',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.1,
+                  child: Text(stock.productQty.toString(), style: bodyStyle()),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.1,
+                  child: Text('상품 상태', style: bodyStyle()),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ===================== Style =====================
+
   TextStyle headerStyle() {
-    return TextStyle(
+    return const TextStyle(
       fontWeight: FontWeight.bold,
       fontSize: 15,
       color: Colors.grey,
@@ -152,35 +194,35 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   TextStyle bodyStyle() {
-    return TextStyle(fontSize: 12, color: Colors.black);
+    return const TextStyle(fontSize: 12, color: Colors.black);
   }
 
-  // === Functions ===
+  // ===================== API =====================
 
-  Future getProductData() async {
-    var url = Uri.parse(stockSelectAllUrl);
-    var response = await http.get(url);
-
-    print(response.body);
+  Future<void> getProductData() async {
+    final url = Uri.parse(stockSelectAllUrl);
+    final response = await http.get(url);
 
     if (response.statusCode == 200) {
       _stockList.clear();
-      var dataConvertedData = json.decode(
-        utf8.decode(response.bodyBytes),
-      );
-      List results = dataConvertedData['results'];
+
+      final decoded = json.decode(utf8.decode(response.bodyBytes)) as Map;
+      final List results = decoded['results'];
+
       for (var item in results) {
-        Stock stock = Stock(
-          stockId: item["s.stock_id"],
-          productId: item["s.stock_product_id"],
-          productName: item["p.product_name"],
-          productQty: item["s.stock_quantity"],
+        _stockList.add(
+          Stock(
+            stockId: item["s.stock_id"],
+            productId: item["s.stock_product_id"],
+            productName: item["p.product_name"],
+            productQty: item["s.stock_quantity"],
+          ),
         );
-        _stockList.add(stock);
       }
+
       setState(() {});
     } else {
-      print("error : ${response.statusCode}");
+      debugPrint("error : ${response.statusCode}");
     }
   }
-} // class
+}
