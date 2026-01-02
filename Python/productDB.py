@@ -76,6 +76,46 @@ async def select(product_id:int):
                } for row in rows]
     return {'results' : result}
 
+
+@router.get('/selectApprove')
+async def selectApprove():
+    conn = connect()
+    curs = conn.cursor()    
+    curs.execute(
+        '''
+        select 
+        p.product_id,
+        p.product_name, 
+        color.color_name,
+        size.size_name,
+        brand.brand_name,
+        category.category_name,    
+        p.product_price 
+        from product as p
+            inner join size
+                on size.size_id = p.product_size_id
+            inner join color
+                on color.color_id = p.product_color_id
+            inner join brand
+                on brand.brand_id = p.product_brand_id
+            inner join category
+                on category.category_id = p.product_category_id
+    '''
+    )
+    rows = curs.fetchall()
+    conn.close()
+
+    result = [{
+               'productId' : row[0], 
+               'productName' : row[1], 
+               'color' : row[2], 
+               'size' : row[3],
+               'brand' : row[4],
+               'category' : row[5],
+               'price' : row[6],
+               } for row in rows]
+    return {'results' : result}
+
 @router.post('/insert')
 async def insert(product_color_id :int = Form(...), 
                  product_size_id:int = Form(...), 
