@@ -14,12 +14,27 @@ def connect():
         charset="utf8"
     )
 
-@router.get('/view/{images_product_id}')
-async def view(images_product_id:int):
+@router.get('/select/{images_product_id}')
+async def select(images_product_id:int):
     try:
         conn = connect()
         curs = conn.cursor()
-        curs.execute("select image from images where images_product_id = %s",(images_product_id))
+        curs.execute("select images_id from images where images_product_id = %s",(images_product_id))
+        rows = curs.fetchall()
+        conn.close()
+
+        result = [{'images_id' : row[0]} for row in rows]
+        return {'results' : result}
+    except Exception as e:
+        print("Error ", e)
+        return {"results" : "Error"}    
+
+@router.get('/view/{images_id}')
+async def view(images_id:int):
+    try:
+        conn = connect()
+        curs = conn.cursor()
+        curs.execute("select image from images where images_id = %s",(images_id))
         row = curs.fetchone()
         conn.close()
         if row and row[0]:

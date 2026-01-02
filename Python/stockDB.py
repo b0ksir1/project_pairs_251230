@@ -3,6 +3,7 @@ import pymysql
 import config
 router = APIRouter()
 
+# 260101. 1월 2일 DB에서 stock_delivery_id 삭제
 def connect():
     return pymysql.connect(
         host=config.DB_HOST,
@@ -18,6 +19,7 @@ async def select():
     curs = conn.cursor()
     curs.execute("""
             select stock_id, stock_update, stock_quantity, stock_product_id
+            select stock_id, stock_update, stock_quantity, stock_product_id
             from stock
             """
     )
@@ -27,6 +29,26 @@ async def select():
     result = [{'stock_id' : row[0], 'stock_update' : row[1], 'stock_quantity' : row[2], 'stock_product_id' : row[3]} for row in rows]
     return {'results' : result}
 
+@router.get('/selectAll')
+async def SelectAll():
+    try:
+        conn = connect()
+        curs = conn.cursor()
+        curs.execute("""
+            select s.stock_id, s.stock_quantity, s.stock_product_id, p.product_name
+            from stock as s
+                inner join product as p
+		            on p.product_id = s.stock_product_id
+    """)
+        rows = curs.fetchall()
+        result = [{'s.stock_id' : row[0], 's.stock_quantity' : row[1], 's.stock_product_id' : row[2], 'p.product_name' : row[3]} for row in rows]
+        return {'results' : result}
+    except Exception as e:
+        print("Error ", e)
+        return {"results" : "Error"}  
+    finally:
+        conn.close()
+
 @router.post('/insert')
 async def insert(stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
     try:
@@ -34,6 +56,7 @@ async def insert(stock_quantity : int = Form(...), stock_product_id : int = Form
         curs = conn.cursor()
         sql = """
             insert into stock
+            (stock_update, stock_quantity, stock_product_id)
             (stock_update, stock_quantity, stock_product_id)
             values
             (now(), %s, %s)
@@ -66,16 +89,16 @@ async def update(stock_id : int = Form(...), stock_quantity : int = Form(...), s
         print("Error", e)
         return {'results' : "Error"} 
     
-@router.delete('/delete/{stock_id}')
-async def delete(stock_id : int):
-    try:
-        conn = connect()
-        curs = conn.cursor()
-        curs.execute("delete from store where stock_id = %s", (stock_id))
-        conn.commit()
-        conn.close()
-        return {'results' : "OK"}
+# @router.delete('/delete/{stock_id}')
+# async def delete(stock_id : int):
+#     try:
+#         conn = connect()
+#         curs = conn.cursor()
+#         curs.execute("delete from store where stock_id = %s", (stock_id))
+#         conn.commit()
+#         conn.close()
+#         return {'results' : "OK"}
 
-    except Exception as e:
-        print("Error ", e)
-        return {'results' : "Error"}  
+#     except Exception as e:
+#         print("Error ", e)
+#         return {'results' : "Error"}  
