@@ -13,7 +13,7 @@ class MainPageHome extends StatefulWidget {
 class _MainPageHomeState extends State<MainPageHome> {
   // property
   final _dataList = [];
-  final urlPath = 'http://172.16.250.171:8001';
+  final urlPath = 'http://10.0.2.2:8001';
   @override
   void initState() {
     super.initState();
