@@ -31,7 +31,6 @@ class _CustomerLoginState extends State<CustomerLogin> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(),
         body: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Center(
@@ -209,7 +208,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
       // 비밀번호가 비어있을 경우 -> SnackBar 처리
       message.errorSnackBar('Error', '비밀번호를 입력하세요.');
     }else{
-      if(emailController.text.trim()  == 'qwer' && passwordController.text.trim() == '1234'){
+      if(emailController.text.trim()  == 'qwer@naver.com' && passwordController.text.trim() == 'qwer1234!'){
         // 로그인 성공 -> 입력된 내용 지우고 메인 페이지로 이동
         emailController.clear();
         passwordController.clear();

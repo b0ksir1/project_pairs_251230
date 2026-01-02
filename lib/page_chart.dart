@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_confirm.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_request.dart';
+import 'package:project_pairs_251230/view/admin/admin_chat.dart';
 import 'package:project_pairs_251230/view/admin/admin_chat_list.dart';
 import 'package:project_pairs_251230/view/admin/admin_dashboard.dart';
 import 'package:project_pairs_251230/view/admin/admin_delivery_product.dart';
@@ -18,6 +19,7 @@ import 'package:project_pairs_251230/view/auth/profile_edit.dart';
 import 'package:project_pairs_251230/view/auth/sign_up.dart';
 import 'package:project_pairs_251230/view/board/customer_board.dart';
 import 'package:project_pairs_251230/view/category/category_list.dart';
+import 'package:project_pairs_251230/view/chat/customer_chat_screen.dart';
 import 'package:project_pairs_251230/view/order/order_detail.dart';
 import 'package:project_pairs_251230/view/order/order_history.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
@@ -99,9 +101,7 @@ class _PageChartState extends State<PageChart> {
                           child: Text('채팅 리스트'),
                         ),
                         TextButton(
-                          onPressed: () {
-                            //
-                          },
+                          onPressed: () => Get.to(CustomerChatScreen()),
                           child: Text('채팅 화면'),
                         ),
                         TextButton(
@@ -170,8 +170,8 @@ class _PageChartState extends State<PageChart> {
                           onPressed: () => Get.to(AdminSalesOrder()),
                           child: Text('수주 신청 페이지'),
                         ),
-                        TextButton(onPressed: () {}, child: Text('채팅 리스트 페이지')),
-                        TextButton(onPressed: () {}, child: Text('채팅 답변')),
+                        TextButton(onPressed: () => Get.to(AdminChatList()), child: Text('채팅 리스트 페이지')),
+                        TextButton(onPressed: () => Get.to(AdminChat()), child: Text('채팅 답변')),
                         TextButton(onPressed: () {}, child: Text('게시판')),
                         TextButton(
                           onPressed: () => Get.to(AdminApprovalRequest()),

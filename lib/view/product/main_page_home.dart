@@ -13,7 +13,7 @@ class MainPageHome extends StatefulWidget {
 
 class _MainPageHomeState extends State<MainPageHome> {
   // property
-  String urlPath = "${GlobalData.url}/product/select";
+  // String urlPath = "${GlobalData.url}/product/select";
   final _dataList = [];
   final urlPath = GlobalData.url;
   @override
@@ -71,7 +71,9 @@ class _MainPageHomeState extends State<MainPageHome> {
                           TextButton(
                             onPressed: () {
                               // 쇼핑하기 버튼 누르면 어디로 갈지...
-                              Get.to(ProductDataTest());
+
+
+                             
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white,

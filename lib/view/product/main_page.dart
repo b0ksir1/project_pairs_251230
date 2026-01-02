@@ -65,7 +65,7 @@ class _MainPageState extends State<MainPage>
           ShoppingCart(),
           const SizedBox(),     // 검색은 container로만
           ShoppingCart(),
-          ShoppingCart(),
+          MyPage(),
         ],
       ),
       bottomNavigationBar: Container(
