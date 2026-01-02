@@ -15,7 +15,8 @@ class SearchResult extends StatefulWidget {
 class _SearchResultState extends State<SearchResult> {
   // Property
   final urlPath = GlobalData.url;
-  final List productData = [];
+  final List productData = []; // 상품 검색 데이터
+  final List productImage = []; // 상품 이미지 한개
   var value = Get.arguments ?? "__"; // 0. 검색결과
 
   @override
@@ -51,7 +52,7 @@ class _SearchResultState extends State<SearchResult> {
         itemBuilder: (context, index) {
           final item = productData[index];
           final imageUrl =
-              '$urlPath/images/view/${item['product_id']}?t=${DateTime.now().millisecondsSinceEpoch}';
+              '$urlPath/images/view/${productImage[index]['images_id']}?t=${DateTime.now().millisecondsSinceEpoch}';
           final price = item['product_price'];
           final priceText = NumberFormat('#,###').format(price);
 
@@ -208,7 +209,7 @@ class _SearchResultState extends State<SearchResult> {
 
   // -------------------------- functions ------------------------------------
   Future<void> getProductdata() async {
-    // product가져오기
+    // product 가져오기
     var url = Uri.parse("$urlPath/product/select/$value");
     var response = await http.get(url);
 
@@ -217,7 +218,22 @@ class _SearchResultState extends State<SearchResult> {
     var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
     List result = dataConvertedJSON['results'];
     productData.addAll(result);
-    // print(productData);
+    await getImagedata(productData);
+    setState(() {});
+  }
+
+  Future<void> getImagedata(List product) async {
+    // image 가져오기
+
+    int proid = 0;
+    for (int i = 0; i < product.length; i++) {
+      proid = product[i]['product_id'];
+      var urlImage = Uri.parse("$urlPath/images/select/$proid");
+      var response = await http.get(urlImage);
+      var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+      List results = dataConvertedJSON['results'];
+      productImage.add(results[0]);
+    }
     setState(() {});
   }
 } // class
