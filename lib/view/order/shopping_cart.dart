@@ -14,7 +14,7 @@ class ShoppingCart extends StatefulWidget {
 
 class _ShoppingCartState extends State<ShoppingCart> {
   String baseUrl = GlobalData.url; // 우리 FastAPI 주소로 수정
-  late int customerId; //
+  int customerId = 1; // 로그인 가능할떄 Get.arguments 로 수정해야함
   bool isLoading = true;
 
   List<Map<String, dynamic>> cartItems = [];

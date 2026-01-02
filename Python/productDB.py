@@ -12,6 +12,61 @@ def connect():
         charset="utf8"
     )
 
+@router.get('/select/{query}')      # 검색(중복없이)
+async def select(query: str):
+    conn = connect()
+    curs = conn.cursor()
+
+    like = f"%{query}%"
+
+    sql = """
+  SELECT
+      p.product_id,
+      p.product_name,
+      p.product_price,
+      p.product_description,
+      c.color_name     AS product_color,
+      b.brand_name     AS product_brand,
+      cg.category_name AS product_category,
+      COALESCE(s.total_stock, 0) AS total_stock
+    FROM product p
+    JOIN (
+      SELECT product_name, product_color_id, MAX(product_id) AS max_id
+      FROM product
+      GROUP BY product_name, product_color_id
+    ) x ON p.product_id = x.max_id
+    JOIN color c     ON c.color_id = p.product_color_id
+    JOIN brand b     ON b.brand_id = p.product_brand_id
+    JOIN category cg ON cg.category_id = p.product_category_id
+    LEFT JOIN (
+      SELECT stock_product_id, SUM(stock_quantity) AS total_stock
+      FROM stock
+      GROUP BY stock_product_id
+    ) s ON s.stock_product_id = p.product_id
+    WHERE
+      p.product_name LIKE %s
+      OR b.brand_name LIKE %s
+      OR cg.category_name LIKE %s
+    """
+
+    curs.execute(sql, (like, like, like))
+    rows = curs.fetchall()
+    conn.close()
+
+    result = [{
+        'product_id': row[0],
+        "product_name": row[1],
+        "product_price": row[2],
+        "product_description": row[3],
+        "product_color": row[4],
+        "product_brand": row[5],
+        "product_category": row[6],
+        "total_stock": row[7],
+    } for row in rows]
+
+    return {'results': result}
+
+
 @router.get('/select')
 async def select():
     conn = connect()

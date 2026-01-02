@@ -171,7 +171,6 @@ class _MainPageHomeState extends State<MainPageHome> {
       ),
     );
   } // build
-
   // ================ functions ==================
 
   Future getJSONData() async {
