@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/model/customer.dart';
+import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/payment/payment_options.dart';
 
 class ProductDataTest extends StatefulWidget {
@@ -28,7 +29,7 @@ class _ProductDataTestState extends State<ProductDataTest> {
   String? _selectedSize;  // 현재 선택된 사이즈
 
   bool _isInitLoading = true; // 초기 로딩 여부
-  final urlPath = 'http://172.16.250.179:8000';
+  final urlPath = GlobalData.url;
 
   @override
   void initState() {

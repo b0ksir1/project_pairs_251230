@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/model/store.dart';
 import 'package:latlong2/latlong.dart' as latlng;
+import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/payment/payment_map.dart';
 // import 'package:shoes_store_app_project/model/product_model.dart';
@@ -29,7 +30,7 @@ class PaymentOptions extends StatefulWidget {
 
 class _PaymentOptionsState extends State<PaymentOptions> {
   // Property
-  final urlPath = 'http://172.16.250.179:8000'; // 자기 ip
+  final urlPath = GlobalData.url; // 자기 ip
   late List<Store> storeData; // 매장 data저장
   late int product_id;
   late String product_name;

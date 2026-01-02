@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/payment/product_data_test.dart';
 
 class MainPageHome extends StatefulWidget {
@@ -14,7 +15,7 @@ class MainPageHome extends StatefulWidget {
 class _MainPageHomeState extends State<MainPageHome> {
   // property
   final _dataList = [];
-  final urlPath = 'http://172.16.250.179:8000';
+  final urlPath = GlobalData.url;
   @override
   void initState() {
     super.initState();
