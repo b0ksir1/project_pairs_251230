@@ -37,7 +37,7 @@ async def select(cart_customer_id: int):
                 SELECT images.image
                 FROM images
                 WHERE images.images_product_id = product.product_id
-                ORDER BY images.images_id DESC
+                ORDER BY images.images_id ASC   
                 LIMIT 1
             ) AS image
         FROM cart

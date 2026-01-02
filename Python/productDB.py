@@ -100,7 +100,7 @@ async def select():
     return {'results' : result}
 
     
-@router.get('/select/{product_id}')
+@router.get('/selectById/{product_id}')
 async def select(product_id:int):
     conn = connect()
     curs = conn.cursor()    
@@ -129,6 +129,38 @@ async def select(product_id:int):
                'product_name' : row[4],
                'product_description' : row[5],
                'product_price' : row[6],
+               } for row in rows]
+    return {'results' : result}
+
+@router.get('/selectByName/{product_name}')
+async def select(product_name:str):
+    conn = connect()
+    curs = conn.cursor()    
+    curs.execute(
+        '''
+        select p.product_id, p.product_color_id, color.color_name, p.product_size_id, size.size_name, p.product_brand_id, p.product_category_id, p.product_description, p.product_price, stock.stock_quantity 
+        from product as p 
+            inner join stock on stock.stock_product_id = p.product_id
+            inner join size on size.size_id = p.product_size_id    
+            inner join color on color.color_id = p.product_color_id    
+        where product_name = %s
+    ''',(product_name)
+    )
+
+    rows = curs.fetchall()
+    conn.close()
+
+    result = [{
+               'product_id' : row[0], 
+               'product_color_id' : row[1], 
+               'color_name' : row[2],
+               'product_size_id' : row[3],
+               'size_name' : row[4],
+               'product_brand_id' : row[5],
+               'product_category_id' : row[6],
+               'product_description' : row[7],
+               'product_price' : row[8],
+               'stock_quantity' : row[9],
                } for row in rows]
     return {'results' : result}
 
