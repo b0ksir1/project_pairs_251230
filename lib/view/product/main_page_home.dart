@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/view/payment/product_data_test.dart';
 
 class MainPageHome extends StatefulWidget {
   const MainPageHome({super.key});
@@ -8,6 +12,15 @@ class MainPageHome extends StatefulWidget {
 }
 
 class _MainPageHomeState extends State<MainPageHome> {
+  // property
+  final _dataList = [];
+  final urlPath = 'http://210.99.163.45:8000';
+  @override
+  void initState() {
+    super.initState();
+    getJSONData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,10 +35,16 @@ class _MainPageHomeState extends State<MainPageHome> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
                       height: 400,
-                      child: Image.asset(
-                        "images/dog3.png",
-                        fit: BoxFit.contain,
-                      ),
+                      child: _dataList.isEmpty
+                          ? Center(child: Text('데이터가 비어있음'))
+                          : ClipRRect(
+                              borderRadius: BorderRadiusGeometry.circular(10),
+
+                              child: Image.network(
+                                '$urlPath/images/view/${_dataList[0]['product_id']}?t=${DateTime.now().millisecondsSinceEpoch}',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                     ),
                     Positioned(
                       bottom: 15,
@@ -49,7 +68,10 @@ class _MainPageHomeState extends State<MainPageHome> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              // 쇼핑하기 버튼 누르면 어디로 갈지...
+                              Get.to(ProductDataTest());
+                            },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white,
                               side: BorderSide(width: 1, color: Colors.white),
@@ -145,5 +167,28 @@ class _MainPageHomeState extends State<MainPageHome> {
         ),
       ),
     );
+  } // build
+
+  // ================ functions ==================
+
+  Future getJSONData() async {
+    var url = Uri.parse('$urlPath/product/select');
+    var response = await http.get(url);
+
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      _dataList.clear();
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      List results = dataConvertedData['results'];
+      _dataList.addAll(results);
+      setState(() {});
+    } else {
+      print("error : ${response.statusCode}");
+    }
   }
-}
+
+  void _showErrorSnackBar(String mag) {
+    Get.snackbar("WWWWWWWWWWWWWWWWWWWarning", mag);
+  }
+} // class

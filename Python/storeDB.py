@@ -19,13 +19,12 @@ async def select():
     curs.execute("""
             select store_id, store_name, store_phone, store_lat, store_lng
             from store
-            order by store_name
             """
     )
     rows = curs.fetchall()
     conn.close()
 
-    result = [{'store_id' : row[0], 'store_name' : row[1], 'store_phone' : row[3], 'store_lat' : row[4], 'store_lng' : row[5]} for row in rows]
+    result = [{'store_id' : row[0], 'store_name' : row[1], 'store_phone' : row[2], 'store_lat' : row[3], 'store_lng' : row[4]} for row in rows]
     return {'results' : result}
 
 @router.post('/insert')

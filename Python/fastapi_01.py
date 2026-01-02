@@ -11,6 +11,13 @@ from obtainDB import router as obtain_router
 from employeeDB import router as employee_router
 from storeDB import router as store_router
 from imagesDB import router as image_router
+from approveDB import router as approve_router
+from ordersDB import router as orders_router
+from procureDB import router as procure_router
+from receiveDB import router as receive_router
+from returnsDB import router as return_router
+from stockDB import router as stock_router
+from storeDB import router as store_router
 import config
 
 
@@ -27,6 +34,13 @@ app.include_router(obtain_router,prefix='/obtain',tags=['obtain'])
 app.include_router(employee_router,prefix='/employee',tags=['employee'])
 app.include_router(store_router,prefix='/store',tags=['store'])
 app.include_router(image_router,prefix='/images',tags=['images'])
+app.include_router(approve_router,prefix='/approve',tags=['approve'])
+app.include_router(orders_router,prefix='/orders',tags=['orders'])
+app.include_router(procure_router,prefix='/procure',tags=['procure'])
+app.include_router(receive_router,prefix='/receive',tags=['receive'])
+app.include_router(return_router,prefix='/return',tags=['return'])
+app.include_router(stock_router,prefix='/stock',tags=['stock'])
+app.include_router(store_router,prefix='/store',tags=['store'])
 
 if __name__ == "__main__":
     import uvicorn
