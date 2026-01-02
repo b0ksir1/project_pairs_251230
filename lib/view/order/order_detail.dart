@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project_pairs_251230/util/app_bottom_nav.dart';
 
 class OrderDetail extends StatefulWidget {
   const OrderDetail({super.key});
@@ -430,35 +431,7 @@ class _OrderDetailState extends State<OrderDetail> {
                 ],
               ),
             ),
-            BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              currentIndex: 3,
-              onTap: (index) {
-                Get.snackbar("탭 이동", "index: $index");
-              },
-              items: [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_outlined),
-                  label: "홈",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.grid_view_outlined),
-                  label: "카테고리",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.search),
-                  label: "검색",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline),
-                  label: "마이페이지",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.shopping_bag_outlined),
-                  label: "장바구니",
-                ),
-              ],
-            ),
+            const AppBottomNav(),
           ],
         ),
       ),
