@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/util/global_data.dart';
 
 class ShoppingCart extends StatefulWidget {
   const ShoppingCart({super.key});
@@ -12,13 +13,8 @@ class ShoppingCart extends StatefulWidget {
 }
 
 class _ShoppingCartState extends State<ShoppingCart> {
-<<<<<<< HEAD
-  String baseUrl = "http://172.30.1.78:8000"; // 우리 FastAPI 주소로 수정
-  int customerId = 1; // 로그인 가능할떄 Get.arguments 로 수정해야함
-=======
   String baseUrl = GlobalData.url; // 우리 FastAPI 주소로 수정
   late int customerId; //
->>>>>>> 3fd2758 (장바구니페이지 수정)
   bool isLoading = true;
 
   List<Map<String, dynamic>> cartItems = [];
@@ -296,7 +292,6 @@ class _ShoppingCartState extends State<ShoppingCart> {
                 child: ElevatedButton(
                   onPressed: cartItems.isEmpty
                       ? null
-                       
                       : () async {
                           final result = await Get.to(
                             () => const (), //아직페이지 연결안해둠
