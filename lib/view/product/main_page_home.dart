@@ -14,7 +14,6 @@ class MainPageHome extends StatefulWidget {
 
 class _MainPageHomeState extends State<MainPageHome> {
   // property
-  // String urlPath = "${GlobalData.url}/product/select";
   final _dataList = [];
   final urlPath = GlobalData.url;
   @override
