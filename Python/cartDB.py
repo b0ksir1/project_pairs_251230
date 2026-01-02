@@ -112,30 +112,6 @@ async def insert(
         return {"results": "Error", "message": str(e)}
 
 
-@router.post('/update')
-async def update(
-    cart_id: int = Form(...),
-    cart_product_quantity: int = Form(...)
-):
-    try:
-        conn = connect()
-        curs = conn.cursor()
-
-        sql = """
-        UPDATE cart
-        SET cart_product_quantity = %s,
-            cart_date = CURDATE()
-        WHERE cart_id = %s
-        """
-        curs.execute(sql, (cart_product_quantity, cart_id))
-        conn.commit()
-        conn.close()
-
-        return {"results": "OK"}
-
-    except Exception as e:
-        print("Error ", e)
-        return {"results": "Error", "message": str(e)}
 
 
 @router.delete('/delete/{cart_id}')

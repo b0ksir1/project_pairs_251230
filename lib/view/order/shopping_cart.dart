@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/util/global_data.dart';
 
 class ShoppingCart extends StatefulWidget {
   const ShoppingCart({super.key});
@@ -12,8 +13,8 @@ class ShoppingCart extends StatefulWidget {
 }
 
 class _ShoppingCartState extends State<ShoppingCart> {
-  String baseUrl = "http://172.30.1.78:8000"; // 우리 FastAPI 주소로 수정
-  int customerId = 1; // 로그인 가능할떄 Get.arguments 로 수정해야함
+  String baseUrl = GlobalData.url; // 우리 FastAPI 주소로 수정
+  late int customerId; //
   bool isLoading = true;
 
   List<Map<String, dynamic>> cartItems = [];
@@ -32,7 +33,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
 
       var url = Uri.parse("$baseUrl/cart/select/$customerId");
       var res = await http.get(url);
-
+      if (!mounted) return;
       if (res.statusCode != 200) {
         throw Exception("서버 응답 오류: ${res.statusCode}");
       }
@@ -76,6 +77,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
       var url = Uri.parse("$baseUrl/cart/delete/$cartId");
 
       var res = await http.delete(url);
+      if (!mounted) return;
 
       if (res.statusCode != 200) {
         throw Exception("삭제 실패: ${res.statusCode}");
@@ -85,6 +87,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
         cartItems.removeAt(index);
       });
     } catch (e) {
+      if (!mounted) return;
       Get.snackbar("장바구니", "삭제 실패: $e");
     }
   }
@@ -289,13 +292,18 @@ class _ShoppingCartState extends State<ShoppingCart> {
                 child: ElevatedButton(
                   onPressed: cartItems.isEmpty
                       ? null
-                      : () {
-                          Get.to(
-                            () => Scaffold(
-                              appBar: AppBar(title: Text("결제(임시)")),
-                              body: Center(child: Text("결제 화면으로 이동")),
-                            ),
+                      : () async {
+                          final result = await Get.to(
+                            () => const (), //아직페이지 연결안해둠
+                            arguments: {
+                              "customerId": customerId,
+                              "cartItems": cartItems,
+                              "totalPrice": totalPrice,
+                            },
                           );
+                          if (result == true) {
+                            fetchCart();
+                          }
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
