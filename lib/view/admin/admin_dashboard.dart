@@ -19,6 +19,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
 
   late List<Stock> _stockList;
+  int monthSales = 0;
 
   @override
   void initState() {
@@ -38,80 +39,76 @@ class _AdminDashboardState extends State<AdminDashboard> {
             onMenuSelected: (menu) {},
           ),
           Expanded(
-            child: _stockList.isEmpty
-                ? const Center(child: Text('데이터가 비어있음'))
-                : Column(
-                    children: [
-                      // ===== Dashboard =====
-                      const Text('Dashboard Overview'),
-                      const Text('dashboard overview'),
-                      const Text('welcome back, here`s happening today'),
-
-                      const SizedBox(height: 20),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 100,
-                        child: Row(
-                          children: const [
-                            Icon(Icons.attach_money_outlined),
-                            SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [Text('매출'), Text('금액 나오는 곳')],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 400,
-                        child: Column(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(30, 100, 30, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Dashboard Overview', style: TextStyle(fontSize: 30)),
+                  Text('welcome back, here`s happening today'),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 100,
+                    child: Row(
+                      children: [
+                        Icon(Icons.attach_money_outlined),
+                        SizedBox(width: 10),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [Text('매출'), Text('금액 나오는 곳')],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 400,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Top Selling Shoes'),
+                        Row(
                           children: [
-                            const Text('Top Selling Shoes'),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Row(
+                            Container(
+                              padding: EdgeInsets.all(8),
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    'images/dog1.png',
+                                    width: 80,
+                                    height: 80,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Image.asset(
-                                        'images/dog1.png',
-                                        width: 80,
-                                        height: 80,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: const [
-                                          Text('제품 이름'),
-                                          Text('제품 색상'),
-                                          Text('제품 브랜드'),
-                                        ],
-                                      ),
-                                      const SizedBox(width: 20),
-                                      const Text('제품 판매 수'),
+                                      Text('제품 이름'),
+                                      Text('제품 색상'),
+                                      Text('제품 브랜드'),
                                     ],
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 20),
+                                  Text('제품 판매 수'),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // ===== 상품 목록 =====
-                      _buildHead(),
-                      _buildListView(),
-                    ],
+                      ],
+                    ),
                   ),
+
+                  SizedBox(height: 20),
+
+                  // ===== 상품 목록 =====
+                  _buildHead(),
+                  _buildListView(),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -123,7 +120,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget _buildHead() {
     return Row(
       children: [
-        const SizedBox(width: 15),
+        SizedBox(width: 15),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
           child: Text('상품명', style: headerStyle()),
@@ -154,7 +151,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           return Card(
             child: Row(
               children: [
-                const SizedBox(width: 15),
+                SizedBox(width: 15),
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.15,
                   child: Text(stock.productName, style: bodyStyle()),
@@ -186,7 +183,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   // ===================== Style =====================
 
   TextStyle headerStyle() {
-    return const TextStyle(
+    return TextStyle(
       fontWeight: FontWeight.bold,
       fontSize: 15,
       color: Colors.grey,
@@ -194,7 +191,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   TextStyle bodyStyle() {
-    return const TextStyle(fontSize: 12, color: Colors.black);
+    return TextStyle(fontSize: 12, color: Colors.black);
   }
 
   // ===================== API =====================
@@ -202,6 +199,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> getProductData() async {
     final url = Uri.parse(stockSelectAllUrl);
     final response = await http.get(url);
+    // 월 판매 금액
 
     if (response.statusCode == 200) {
       _stockList.clear();

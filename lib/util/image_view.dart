@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http; 
+import 'package:http/http.dart' as http;
 
 class ImageView extends StatefulWidget {
   const ImageView({super.key});
@@ -12,16 +12,15 @@ class ImageView extends StatefulWidget {
 }
 
 class _ImageViewState extends State<ImageView> {
- // === Property ===
-
+  // === Property ===
   final _dataList = [];
-
-  final  urlPath = 'http://172.16.250.171:8001';
+  final urlPath = 'http://172.16.250.171:8001';
   @override
   void initState() {
     super.initState();
-       getJSONData();
+    getJSONData();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,9 +43,8 @@ class _ImageViewState extends State<ImageView> {
                         children: [
                           Image.network(
                             '$urlPath/images/view/$productId?t=${DateTime.now().millisecondsSinceEpoch}',
-                          width: 100,
+                            width: 100,
                           ), // 이미지로 변경
-                          
                         ],
                       ),
                     ),
@@ -58,9 +56,7 @@ class _ImageViewState extends State<ImageView> {
   }
 
   Future getJSONData() async {
-    var url = Uri.parse(
-      '$urlPath/product/select',
-    );
+    var url = Uri.parse('$urlPath/product/select');
     var response = await http.get(url);
 
     print(response.body);

@@ -4,4 +4,4 @@ DB_USER = "root"
 DB_PASSWORD = "qwer1234"
 DB_NAME = "mydb"
 
-FASTAPI_HOST = "172.16.250.179"
+FASTAPI_HOST = "172.16.0.6"
