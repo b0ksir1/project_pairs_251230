@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Form
+from pydantic import BaseModel
 import pymysql
 import config
 router = APIRouter()
@@ -12,6 +13,40 @@ def connect():
         charset="utf8"
     )
 
+#  관리자 로그인 (s)
+class EmployeeLogin(BaseModel):
+    employee_email: str
+    employee_password: str
+
+@router.post('/adminLogin')
+async def employee_login(data: EmployeeLogin):
+    print("🔥 adminLogin HIT")
+    conn = connect()
+    curs = conn.cursor(pymysql.cursors.DictCursor)
+    sql = """
+        SELECT employee_id, employee_name, employee_role
+        FROM employee
+        WHERE employee_email = %s
+        AND employee_password = %s
+    """
+    curs.execute(sql, (data.employee_email, data.employee_password))
+    result = curs.fetchone()
+    conn.close()
+    if result:
+        return{
+            "result" : "OK",
+            "employee_id" : result["employee_id"],
+            "employee_name" : result["employee_name"],
+            "employee_role" : result["employee_role"],
+            "token" : "employee_token_sample"
+        
+        }
+    else:
+        return {"result":"FAIL"}
+
+
+
+#  관리자 로그인 (e) -hhj
 @router.get('/select')
 async def select():
     conn = connect()
@@ -52,7 +87,7 @@ async def insert(employee_role :int = Form(...),
                  employee_address:str = Form(...),
                  employee_phone:str = Form(...),
                  employee_email:str = Form(...),
-                 employee_password:int = Form(...),
+                 employee_password:str = Form(...),
                  employee_workplace:str = Form(...),
                  ):
     try:
@@ -89,7 +124,7 @@ async def update(employee_role :int = Form(...),
                  employee_address:str = Form(...),
                  employee_phone:str = Form(...),
                  employee_email:str = Form(...),
-                 employee_password:int = Form(...),
+                 employee_password:str = Form(...),
                  employee_workplace:str = Form(...),
                  employee_id:int = Form(...)
 
