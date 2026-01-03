@@ -172,14 +172,14 @@ async def select(orders_status:int):
         curs = conn.cursor()    
         curs.execute(
             '''
-            select o.orders_id, o.orders_quantity, o.orders_number, o.orders_date, s.store_name, p.product_name, c.customer_name
+            select o.orders_id, o.orders_quantity, stock.stock_quantity, o.orders_number, o.orders_payment, o.orders_date, s.store_name, p.product_name, c.customer_name
             from orders as o
                 inner join product as p
                     on p.product_id = o.orders_product_id
                 inner join store as s
                     on s.store_id = o.orders_store_id   
-                inner join size
-                    on size.size_id = p.product_size_id 
+                inner join stock
+                    on orders_product_id = stock.stock_product_id
                  inner join customer as c
 					on c.customer_id = o.orders_customer_id
             where o.orders_status = %s
@@ -189,11 +189,86 @@ async def select(orders_status:int):
 
         result = [{'orders_id' : row[0], 
                 'orders_quantity' : row[1], 
-                'orders_number' : row[2], 
-                'orders_date' : row[3], 
-                'store_name' : row[4], 
-                'product_name' : row[5], 
-                'customer_name' : row[6],
+                'stock_quantity' : row[2], 
+                'orders_number' : row[3], 
+                'orders_payment' : row[4], 
+                'orders_date' : row[5], 
+                'store_name' : row[6], 
+                'product_name' : row[7], 
+                'customer_name' : row[8],
+                } for row in rows]
+        return {'results' : result}
+    finally:
+        conn.close()
+
+@router.get('/selectRequestByStore/{store_id}')
+async def select(store_id:int):
+    try:
+        conn = connect()
+        curs = conn.cursor()    
+        curs.execute(
+            '''
+            select o.orders_id, o.orders_quantity, stock.stock_quantity, o.orders_number, o.orders_payment, o.orders_date, s.store_name, p.product_name, c.customer_name, o.orders_product_id 
+            from orders as o
+                inner join product as p
+                    on p.product_id = o.orders_product_id
+                inner join store as s
+                    on s.store_id = o.orders_store_id   
+                inner join stock
+                    on orders_product_id = stock.stock_product_id
+                 inner join customer as c
+					on c.customer_id = o.orders_customer_id
+            where o.orders_status = 0 and o.orders_store_id = %s
+            ''',(store_id)
+        )
+        rows = curs.fetchall()
+
+        result = [{'orders_id' : row[0], 
+                'orders_quantity' : row[1], 
+                'stock_quantity' : row[2], 
+                'orders_number' : row[3], 
+                'orders_payment' : row[4], 
+                'orders_date' : row[5], 
+                'store_name' : row[6], 
+                'product_name' : row[7], 
+                'customer_name' : row[8],
+                'product_id' : row[9],
+                } for row in rows]
+        return {'results' : result}
+    finally:
+        conn.close()
+@router.get('/selectRequestByStoreKeyword')
+async def select(store_id:int, search:str):
+    try:
+        conn = connect()
+        curs = conn.cursor()    
+        curs.execute(
+            '''
+            select o.orders_id, o.orders_quantity, stock.stock_quantity, o.orders_number, o.orders_payment, o.orders_date, s.store_name, p.product_name, c.customer_name, o.orders_product_id 
+            from orders as o
+                inner join product as p
+                    on p.product_id = o.orders_product_id
+                inner join store as s
+                    on s.store_id = o.orders_store_id   
+                inner join stock
+                    on orders_product_id = stock.stock_product_id
+                 inner join customer as c
+					on c.customer_id = o.orders_customer_id
+            where o.orders_status = 0 and o.orders_store_id = %s c.customer_name like %s 
+            ''',(store_id, search)
+        )
+        rows = curs.fetchall()
+
+        result = [{'orders_id' : row[0], 
+                'orders_quantity' : row[1], 
+                'stock_quantity' : row[2], 
+                'orders_number' : row[3], 
+                'orders_payment' : row[4], 
+                'orders_date' : row[5], 
+                'store_name' : row[6], 
+                'product_name' : row[7], 
+                'customer_name' : row[8],
+                'product_id' : row[9],
                 } for row in rows]
         return {'results' : result}
     finally:
