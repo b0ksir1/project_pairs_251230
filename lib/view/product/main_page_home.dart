@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/util/global_data.dart';
-import 'package:project_pairs_251230/view/payment/product_data_test.dart';
+import 'package:project_pairs_251230/view/product/product_detail.dart';
 
 class MainPageHome extends StatefulWidget {
   const MainPageHome({super.key});
@@ -71,6 +71,10 @@ class _MainPageHomeState extends State<MainPageHome> {
                           TextButton(
                             onPressed: () {
                               // 쇼핑하기 버튼 누르면 어디로 갈지...
+                              Get.to(
+                                ProductDetail(),
+                                arguments: 5      // 여기에다가 product_id 적으면 됨
+                              );
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white,

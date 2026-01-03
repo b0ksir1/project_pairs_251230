@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart';
+import 'package:project_pairs_251230/model/customer.dart';
+import 'package:project_pairs_251230/model/order_item.dart';
 import 'package:project_pairs_251230/model/product.dart';
 import 'package:project_pairs_251230/model/product_detail_item.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
@@ -11,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/chat/customer_chat_screen.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
+import 'package:project_pairs_251230/view/payment/payment_options.dart';
 
 class ProductDetail extends StatefulWidget {
   const ProductDetail({super.key});
@@ -36,6 +39,7 @@ class _ProductDetailState extends State<ProductDetail> {
   List _productColorId = [];
   List _productColorList = [];
   List _productMainImageProductIdList = [];
+  List orderItem = [];        // payment로 넘기기위한 변수
 
   String? _selectedSize;
 
@@ -216,13 +220,11 @@ class _ProductDetailState extends State<ProductDetail> {
   }
 
   // === Functions ===
-
   Future getProductData(int id) async {
     var url = Uri.parse('${GlobalData.url}/product/selectById/$id');
     var response = await http.get(url);
 
     // print('getProductData : ${response.body} / $url');
-
     if (response.statusCode == 200) {
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       var results = dataConvertedData['results'];
@@ -507,7 +509,7 @@ class _ProductDetailState extends State<ProductDetail> {
     );
   }
 
-  Widget _buildQtySelector(BuildContext context) {
+  Widget _buildQtySelector(BuildContext context) {    // 상품개수구간
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -691,7 +693,7 @@ class _ProductDetailState extends State<ProductDetail> {
               } catch (e) {
                 Get.snackbar("장바구니", "담기 실패: $e");
               }
-              // Get.to(ShoppingCart());
+              Get.to(ShoppingCart());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
@@ -736,7 +738,21 @@ class _ProductDetailState extends State<ProductDetail> {
                       );
                       return;
                     }
-                    Get.to(ShoppingCart());
+                    final item = OrderItem(
+                      productId: _product!.productId!, 
+                      name: _product!.productName,
+                      size: int.parse(_selectedSize!), 
+                      price: _product!.price, 
+                      imageId: _productMainImageProductIdList[_selectedColorIndex], 
+                      qty: _qty
+                      );
+                    Get.to(
+                      PaymentOptions(),
+                      arguments: {
+                        "customerId" : customer_id,
+                        "items": [item.toJson()]
+                      }
+                    )!.then((value) => getProductData(product_id));
                   },
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.grey.shade300),
