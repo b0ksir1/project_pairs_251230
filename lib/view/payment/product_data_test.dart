@@ -84,11 +84,13 @@ class _ProductDataTestState extends State<ProductDataTest> {
     List result = dataConvertedJSON['results'];
     productData.addAll(result);
     for (int i = 0; i < productData.length; i++) {
-      final String size = productData[i]['product_size'];
-      final int qty = productData[i]['stock_quantity'];
-      productSizeData[size] = qty;
+      if (productData[i]['product_color'] == "white") {
+        final String size = productData[i]['product_size'];
+        final int qty = productData[i]['stock_quantity'];
+        productSizeData[size] = qty;      
+      }
     }
-    // print(productSizeData);
+    print(productSizeData);
     setState(() {});
   }
 
@@ -239,7 +241,7 @@ class _ProductDataTestState extends State<ProductDataTest> {
                         customerData[0].customer_id,    // 고객 id
                         customerData[0].customer_address  // 고객 주소
                       ],
-                    );
+                    )!.then((value) => getProductdata(),);
                   },
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.grey.shade300),

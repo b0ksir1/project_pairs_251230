@@ -19,8 +19,8 @@ from stockDB import router as stock_router
 from storeDB import router as store_router
 from wishlistDB import router as wishlist_router
 from cartDB import router as cart_router
+from stripe_api import router as stripe_router          # stripe결제
 import config
-
 
 app = FastAPI()
 app.include_router(brand_router,prefix='/brand',tags=['brand'])
@@ -43,6 +43,7 @@ app.include_router(return_router,prefix='/return',tags=['return'])
 app.include_router(stock_router,prefix='/stock',tags=['stock'])
 app.include_router(wishlist_router,prefix='/wishlist',tags=['wishlist'])
 app.include_router(cart_router,prefix='/cart',tags=['cart'])
+app.include_router(stripe_router,prefix='/payment', tags=['payment'])
 
 if __name__ == "__main__":
     import uvicorn

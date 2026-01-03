@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +22,12 @@ import 'package:project_pairs_251230/view/payment/payment_map.dart';
 // import '../models/product_model.dart';
 // import 'shop_screen.dart'; // ShopSelectionScreen 위젯 경로
 // ------------------------------------------------------------------
+/*
+  ※ 결제카드 정보 ※
+  카드번호: 4242 4242 4242 4242
+  유효기간: 아무 미래 날짜
+  CVC: 아무 3자리
+*/
 
 class PaymentOptions extends StatefulWidget {
   const PaymentOptions({super.key});
@@ -65,35 +73,8 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     getStoredata();
   }
 
-  // 매장 선택 지도로 이동하는 함수 (ShopSelectionScreen에서 결과 받아옴)
-  // void _openStoreMap() async {
-  //   final selectedStoreMap = await Navigator.push(
-  //     // context,
-  //     // MaterialPageRoute(builder: (context) => const ShopSelectionScreen()),
-  //   );
-
-  //   // 결과가 StoreModel 타입의 Map으로 돌아왔다면 상태 업데이트
-  //   if (selectedStoreMap != null && selectedStoreMap is Map<String, dynamic>) {
-  //     setState(() {
-  //       _selectedStore = Store.fromMap(selectedStoreMap);
-  //     });
-  //     Get.snackbar("알림", "${_selectedStore!.name}이(가) 픽업 매장으로 선택되었습니다.",
-  //       snackPosition: SnackPosition.BOTTOM,
-  //       backgroundColor: Colors.blue.withOpacity(0.9),
-  //       colorText: Colors.white,
-  //     );
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
-    // // 만약 상품 정보가 없다면 에러 처리
-    // if (lastProduct == null) {
-    //   return Scaffold(
-    //     appBar: _buildAppBar(context),
-    //     body: const Center(child: Text("주문할 상품 정보가 없습니다.")),
-    //   );
-    // }
 
     // 합계 금액 계산 (CartController에서 price는 int로 저장됨)
     final double totalPrice = product_price.toDouble();
@@ -332,6 +313,7 @@ class _PaymentOptionsState extends State<PaymentOptions> {
                 setState(() {
                   _selectedPaymentMethod = method;
                 });
+                print(_selectedPaymentMethod);
               },
               contentPadding: EdgeInsets.zero,
               leading: Icon(
@@ -421,25 +403,21 @@ class _PaymentOptionsState extends State<PaymentOptions> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: () {
+            onPressed: () async{
               if (_selectedStore == null) {
-                Get.snackbar("경고", "픽업 매장을 선택해주세요.");
+                message.errorSnackBar("경고", "픽업 매장을 선택해주세요.");
                 return;
               }
               if (_selectedPaymentMethod == null) {
-                Get.snackbar("경고", "결제 수단을 선택해주세요.");
+                message.errorSnackBar("경고", "결제 수단을 선택해주세요.");
                 return;
               }
 
-              if (_selectedPaymentMethod != null && _selectedStore != null) {
-                Get.snackbar(
-                  "결제 완료!",
-                  "${formattedPrice}원 결제가 ${_selectedPaymentMethod}으로 요청되었습니다.",
-                  snackPosition: SnackPosition.TOP,
-                  backgroundColor: Colors.green,
-                  colorText: Colors.white,
-                );
+              if (_selectedPaymentMethod == "픽업결제" && _selectedStore != null) {
+                message.successSnackBar("결제 완료!", "$formattedPrice원 결제가 $_selectedPaymentMethod으로 요청되었습니다.");
                 insertOrderAction();
+              }else if(_selectedPaymentMethod == "신용/체크카드" && _selectedStore != null) {
+                await pay(totalPrice.toInt());
               }
             },
             style: ElevatedButton.styleFrom(
@@ -471,19 +449,37 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     );
     request.fields['orders_customer_id'] = customer_id.toString();
     request.fields['orders_product_id'] = product_id.toString();
-    request.fields['orders_number'] = product_price.toString();   // price속성이 없어서 여기에다가 가격적음
+    request.fields['orders_number'] = generateOrderNumber();   // price속성이 없어서 여기에다가 가격적음
     request.fields['orders_quantity'] = 1.toString();       // 아직 장바구니구현안해서 구매하기만
     request.fields['orders_payment'] = _selectedPaymentMethod.toString(); // 결제방법
     request.fields['orders_store_id'] = _selectedStore!.store_id.toString();
     request.fields['orders_employee_id'] = 1.toString();        // null값 = 아직 employee가 누구인지 모름
+    request.fields['orders_totalprice'] = product_price.toString();
+    request.fields['orders_status'] = 1.toString();
+
 
     var res = await request.send();
     if (res.statusCode == 200) {
-      message.showDialog("주문이 완료되었습니다.", "픽업 준비가 시작되면 알려드릴게요");
+      await updateStockAction();
+      message.showDialog("주문이 완료되었습니다.", "주문이 정상적으로 접수되었습니다.");
     }else{
       message.errorSnackBar("죄송합니다. 주문에 실패했습니다.", "주문에 실패했습니다. 다시 시도해 보세요.");
     }
   }
+
+  Future<void> updateStockAction()  async{    // 재고 반영
+    var request = http.MultipartRequest(
+      'POST', 
+      Uri.parse('$urlPath/stock/update')
+    );
+    request.fields['stock_quantity'] = 1.toString();
+    request.fields['stock_product_id'] = product_id.toString();
+    final res = await request.send();
+    if (res.statusCode != 200) {
+      throw Exception("재고 업데이트 실패: ${res.statusCode}");
+    }
+  }
+
 
   Future<void> getStoredata() async {
     // Store 데이터 가져오기
@@ -534,4 +530,52 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     final _lngData = locations.first.longitude;
     return latlng.LatLng(_latData, _lngData);
   }
+
+// clientSecret 받아오기
+Future<String> createPaymentIntent(int amount) async {
+  final res = await http.post(
+    Uri.parse(
+        "$urlPath/payment/create-payment-intent"),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "amount": amount,
+      "currency": "krw",
+    }),
+  );
+
+  final data = jsonDecode(res.body);
+  return data["clientSecret"];
+}
+
+// 신용카드 결제부분
+Future<void> pay(int amount) async {
+  try {
+    // 서버에서 clientSecret 받기
+    final clientSecret = await createPaymentIntent(amount);
+
+    // PaymentSheet 초기화
+    await Stripe.instance.initPaymentSheet(
+      paymentSheetParameters: SetupPaymentSheetParameters(
+        paymentIntentClientSecret: clientSecret,
+        merchantDisplayName: "OnAndTap (Test)",
+        style: ThemeMode.light,
+      ),
+    );
+
+    // 결제 UI 표시
+    await Stripe.instance.presentPaymentSheet();
+
+    // 여기까지 오면 결제 성공
+    insertOrderAction();
+  } catch (e) {
+    message.errorSnackBar("결제실패", "$e");
+  }
+}
+
+String generateOrderNumber(){
+  final date = DateFormat('yyyyMMdd').format(DateTime.now());
+  final random = Random().nextInt(90000) + 10000;
+  return 'ORD-$date-$random';
+}
+
 } // class

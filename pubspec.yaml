@@ -79,7 +79,8 @@ dependencies:
   flutter_native_splash: ^2.4.7
 
 
-
+  # flutter_stripe(신용카드 결제)
+  flutter_stripe: ^12.1.1
 
   
 

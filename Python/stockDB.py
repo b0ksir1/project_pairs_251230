@@ -84,17 +84,17 @@ async def insert(stock_quantity : int = Form(...), stock_product_id : int = Form
         print("Error ", e)
         return {"results" : "Error"}  
     
-@router.post('/update')
-async def update(stock_id : int = Form(...), stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
+@router.post('/update')             # update 수정
+async def update(stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
         sql = """
             update stock
-            set stock_quantity = %s, stock_product_id = %s
-            where stock_id = %s
+            set stock_quantity = stock_quantity  - %s 
+            where stock_product_id = %s
             """
-        curs.execute(sql, (stock_quantity, stock_product_id, stock_id))
+        curs.execute(sql, (stock_quantity, stock_product_id,))
         conn.commit()
         conn.close()
         return {'results' : "OK"}
@@ -102,6 +102,25 @@ async def update(stock_id : int = Form(...), stock_quantity : int = Form(...), s
     except Exception as e:
         print("Error", e)
         return {'results' : "Error"} 
+    
+# @router.post('/update/')
+# async def update(stock_id : int = Form(...), stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
+#     try:
+#         conn = connect()
+#         curs = conn.cursor()
+#         sql = """
+#             update stock
+#             set stock_quantity = %s, stock_product_id = %s
+#             where stock_id = %s
+#             """
+#         curs.execute(sql, (stock_quantity, stock_product_id, stock_id))
+#         conn.commit()
+#         conn.close()
+#         return {'results' : "OK"}
+
+#     except Exception as e:
+#         print("Error", e)
+#         return {'results' : "Error"} 
     
 # @router.delete('/delete/{stock_id}')
 # async def delete(stock_id : int):

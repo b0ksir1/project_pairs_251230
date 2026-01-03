@@ -4,6 +4,7 @@ import config
 router = APIRouter()
 # 260101. 1월 2일 DB에서 orders_date를 datetime으로 수정// 260102.반영 완료
 # 260101. 1월 2일 DB에서 orders_status를 int로 추가// 260102.반영 완료
+# 260103. 1월 2일 DB에서 orders_totalprice int로 추가 // 260102. 반영완료
 
 def connect():
     return pymysql.connect(
@@ -30,7 +31,8 @@ async def select():
             orders_number, 
             orders_payment, 
             orders_date,
-            orders_status
+            orders_status,
+            orders_totalprice
             from orders
             '''
         )
@@ -47,6 +49,7 @@ async def select():
                 'orders_payment' : row[7], 
                 'orders_date' : row[8],
                 'orders_status' : row[9],
+                'orders_totalprice' : row[10],                
                 } for row in rows]
         return {'results' : result}
 
@@ -68,6 +71,7 @@ async def select(customer_id:int):
             o.orders_payment, 
             o.orders_date,
             o.orders_status,
+            o.orders_totalprice,
             s.store_name,
             p.product_name
             from orders as o
@@ -90,8 +94,9 @@ async def select(customer_id:int):
                 'orders_payment' : row[7], 
                 'orders_date' : row[8],
                 'orders_status' : row[9],
-                'store_name' : row[10],
-                'product_name' : row[11],
+                'orders_totalprice' : row[10],
+                'store_name' : row[11],
+                'product_name' : row[12],
                 } for row in rows]
         return {'results' : result}
     finally:
@@ -104,7 +109,7 @@ async def select(customer_id:int):
         curs = conn.cursor()    
         curs.execute(
             '''
-            select o.orders_id, o.orders_quantity, o.orders_number, o.orders_payment, o.orders_date, o.orders_status, s.store_name, p.product_name, p.product_price, size.size_name, brand.brand_name, category.category_name, color.color_name
+            select o.orders_id, o.orders_quantity, o.orders_number, o.orders_payment, o.orders_totalprice , o.orders_date, o.orders_status, s.store_name, p.product_name, p.product_price, size.size_name, brand.brand_name, category.category_name, color.color_name
             from orders as o
                 inner join product as p
                     on p.product_id = o.orders_product_id
@@ -127,15 +132,16 @@ async def select(customer_id:int):
                 'orders_quantity' : row[1], 
                 'orders_number' : row[2], 
                 'orders_payment' : row[3], 
-                'orders_date' : row[4], 
-                'orders_status' : row[5], 
-                'store_name' : row[6], 
-                'product_name' : row[7], 
-                'product_price' : row[8],
-                'size_name' : row[9],
-                'brand_name' : row[10],
-                'category_name' : row[11],
-                'color_name' : row[12],
+                'orders_totalprice' : row[4], 
+                'orders_date' : row[5], 
+                'orders_status' : row[6], 
+                'store_name' : row[7], 
+                'product_name' : row[8], 
+                'product_price' : row[9],
+                'size_name' : row[10],
+                'brand_name' : row[11],
+                'category_name' : row[12],
+                'color_name' : row[13],
                 } for row in rows]
         return {'results' : result}
     finally:
@@ -176,12 +182,12 @@ async def select(orders_status:int):
         conn.close()
 
 @router.post('/insert')
-async def insert(orders_customer_id :int = Form(...), orders_store_id:int = Form(...), orders_employee_id:int = Form(...), orders_product_id:int = Form(...), orders_quantity:int = Form(...), orders_number:str = Form(...), orders_payment:str = Form(...)):
+async def insert(orders_customer_id :int = Form(...), orders_store_id:int = Form(...), orders_employee_id:int = Form(...), orders_product_id:int = Form(...), orders_quantity:int = Form(...), orders_number:str = Form(...), orders_payment:str = Form(...), orders_totalprice:int = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
-        sql = 'insert into orders (orders_customer_id, orders_store_id, orders_employee_id, orders_product_id, orders_quantity, orders_number, orders_payment, orders_date, orders_status) values (%s, %s, %s, %s, %s, %s, %s, now(),0)'
-        curs.execute(sql, (orders_customer_id, orders_store_id, orders_employee_id, orders_product_id, orders_quantity, orders_number, orders_payment,))
+        sql = 'insert into orders (orders_customer_id, orders_store_id, orders_employee_id, orders_product_id, orders_quantity, orders_number, orders_payment, orders_date, orders_status, orders_totalprice) values (%s, %s, %s, %s, %s, %s, %s, now(),0, %s)'
+        curs.execute(sql, (orders_customer_id, orders_store_id, orders_employee_id, orders_product_id, orders_quantity, orders_number, orders_payment,orders_totalprice))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
@@ -191,12 +197,12 @@ async def insert(orders_customer_id :int = Form(...), orders_store_id:int = Form
         return {"results" : "Error"}  
     
 @router.post('/update')
-async def update(orders_customer_id :int = Form(...), orders_store_id:int = Form(...), orders_employee_id:int = Form(...), orders_product_id:int = Form(...), orders_quantity:int = Form(...), orders_number:int = Form(...), orders_payment:str = Form(...),orders_status:int=Form(...),  orders_id :int = Form(...)):
+async def update(orders_customer_id :int = Form(...), orders_store_id:int = Form(...), orders_employee_id:int = Form(...), orders_product_id:int = Form(...), orders_quantity:int = Form(...), orders_number:int = Form(...), orders_payment:str = Form(...),orders_status:int=Form(...), orders_totalprice:int=Form(...),  orders_id :int = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
-        sql = 'update orders set orders_customer_id = %s, orders_store_id = %s, orders_employee_id =%s, orders_product_id =%s, orders_quantity =%s, orders_number =%s, orders_payment =%s, orders_status= %s where orders_id = %s'
-        curs.execute(sql, (orders_customer_id,orders_store_id, orders_employee_id,orders_product_id,orders_quantity, orders_number, orders_payment, orders_status, orders_id))
+        sql = 'update orders set orders_customer_id = %s, orders_store_id = %s, orders_employee_id =%s, orders_product_id =%s, orders_quantity =%s, orders_number =%s, orders_payment =%s, orders_status= %s, orders_totalprice= %s where orders_id = %s'
+        curs.execute(sql, (orders_customer_id,orders_store_id, orders_employee_id,orders_product_id,orders_quantity, orders_number, orders_payment, orders_status, orders_totalprice, orders_id))
         conn.commit()
         conn.close()
         return {"results" : "OK"}
