@@ -50,6 +50,30 @@ async def select():
                 } for row in rows]
         return {'results' : result}
 
+# 매출 (s)
+@router.get("/month")
+async def month_sales():
+        conn = connect()
+        curs = conn.cursor(pymysql.cursors.DictCursor)
+
+        sql = """
+            SELECT
+            COALESCE(SUM(orders_totalprice), 0) AS month_sales
+            FROM orders
+            WHERE orders_status = 1     
+            AND orders_totalprice IS NOT NULL
+            AND orders_date >= DATE_FORMAT(NOW(), '%Y-%m-01')
+            AND orders_date <  DATE_ADD(DATE_FORMAT(NOW(), '%Y-%m-01'), 
+            INTERVAL 1 MONTH);
+
+            """
+        curs.execute(sql)
+        row = curs.fetchone()
+        conn.close()
+
+        return {"month_sales": row["month_sales"]}
+# 매출 (e)
+
 @router.get('/select/{customer_id}')
 async def select(customer_id:int):
     try:
