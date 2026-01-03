@@ -53,162 +53,30 @@ class _AdminInsertProductState extends State<AdminInsertProduct> {
           Expanded(
             child: _stockList.isEmpty
                 ? Center(child: Text('데이터가 비어있음'))
-                : Column(
-                    children: [
-                      Text('Dashboard Overview'),
-
-                      Container(
-                        child: Column(
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Icon(Icons.add_shopping_cart_sharp),
-                                Text('제품 등록'),
-                              ],
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                              child: Icon(
+                                Icons.add_shopping_cart_sharp,
+                                size: 30,
+                              ),
                             ),
-                            Row(
-                              children: [
-                                Column(
-                                  children: [
-                                    Text('제품'),
-                                    // DropdownButton(
-                                    //   dropdownColor: Theme.of(
-                                    //     context,
-                                    //   ).colorScheme.secondary,
-                                    //   iconEnabledColor: Theme.of(
-                                    //     context,
-                                    //   ).colorScheme.error,
-                                    //   value: dropDownValue,
-                                    //   icon: Icon(Icons.keyboard_arrow_down),
-                                    //   items:((String items) {
-                                    //     return DropdownMenuItem(
-                                    //       value: items,
-                                    //       child: Text(
-                                    //         items,
-                                    //         style: TextStyle(
-                                    //           color: Theme.of(
-                                    //             context,
-                                    //           ).colorScheme.primaryContainer,
-                                    //         ),
-                                    //       ),
-                                    //     );
-                                    //   }).toList(),
-                                    //   onChanged: (value) {
-                                    //     dropDownValue = value!;
-                                    //     imageName = value;
-                                    //     setState(() {});
-                                    //   },
-                                    // ),
-                                  ],
-                                ),
-                                Column(
-                                  children: [
-                                    Text('제품 브랜드'),
-                                    // DropdownButton(
-                                    //   dropdownColor: Theme.of(
-                                    //     context,
-                                    //   ).colorScheme.secondary,
-                                    //   iconEnabledColor: Theme.of(
-                                    //     context,
-                                    //   ).colorScheme.error,
-                                    //   value: dropDownValue,
-                                    //   icon: Icon(Icons.keyboard_arrow_down),
-                                    //   items: items.map((String items) {
-                                    //     return DropdownMenuItem(
-                                    //       value: items,
-                                    //       child: Text(
-                                    //         items,
-                                    //         style: TextStyle(
-                                    //           color: Theme.of(
-                                    //             context,
-                                    //           ).colorScheme.primaryContainer,
-                                    //         ),
-                                    //       ),
-                                    //     );
-                                    //   }).toList(),
-                                    //   onChanged: (value) {
-                                    //     dropDownValue = value!;
-
-                                    //     setState(() {});
-                                    //   },
-                                    // ),
-                                  ],
-                                ),
-                                Column(
-                                  children: [
-                                    Text('수량'),
-                                    DropdownButton<int>(
-                                      dropdownColor: Theme.of(
-                                        context,
-                                      ).colorScheme.secondary,
-                                      iconEnabledColor: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                      value: dropDownValue,
-                                      icon: const Icon(
-                                        Icons.keyboard_arrow_down,
-                                      ),
-
-                                      items: quantityItems.map((int value) {
-                                        return DropdownMenuItem<int>(
-                                          value: value,
-                                          child: Text(
-                                            '$value 개',
-                                            style: TextStyle(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.primaryContainer,
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-
-                                      onChanged: (int? value) {
-                                        setState(() {
-                                          dropDownValue = value!;
-                                        });
-                                      },
-                                    ),
-
-                                    // DropdownButtonFormField<int>(
-                                    //   value: dropDownValue,
-                                    //   decoration: InputDecoration(
-                                    //     contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                                    //     border: OutlineInputBorder(
-                                    //       borderRadius: BorderRadius.circular(8),
-                                    //     ),
-                                    //   ),
-                                    //   items: quantityItems.map((int value) {
-                                    //     return DropdownMenuItem<int>(
-                                    //       value: value,
-                                    //       child: Text('$value 개'),
-                                    //     );
-                                    //   }).toList(),
-                                    //   onChanged: (value) {
-                                    //     setState(() {
-                                    //       dropDownValue = value!;
-                                    //     });
-                                    //   },
-                                    // ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                //Get.to(AdminApprovalRequest()
-                              },
-                              child: Text('상품 등록? 신청?'),
-                            ),
-                            // 제품 등록 (end)
-                            //
+                            Text('제품 등록', style: _adminTitle()),
                           ],
                         ),
-                      ),
-
-                      _buildHead(),
-                      _buildListView(),
-                    ],
+                        SizedBox(height: 10),
+                        _insertContainer(),
+                        SizedBox(height: 35),
+                        _buildHead(),
+                        _buildListView(),
+                      ],
+                    ),
                   ),
           ),
         ],
@@ -216,74 +84,224 @@ class _AdminInsertProductState extends State<AdminInsertProduct> {
     );
   } // build
 
-  // === Widget ===
+  // ======================= Widget =================================
+  Widget _insertContainer() {
+    return Container(
+      width: double.infinity,
+      height: 80,
+      decoration: containerStyle(),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 아이콘
+          const SizedBox(width: 8),
+
+          // 제목
+          const Text(
+            '제품 등록',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(width: 24),
+
+          // 입력 영역
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('제품'),
+                    DropdownButton<int>(
+                      value: dropDownValue,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: quantityItems.map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value 개'),
+                        );
+                      }).toList(),
+                      onChanged: (int? value) {
+                        setState(() {
+                          dropDownValue = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('제품 수량'),
+                    DropdownButton<int>(
+                      value: dropDownValue,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: quantityItems.map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value 개'),
+                        );
+                      }).toList(),
+                      onChanged: (int? value) {
+                        setState(() {
+                          dropDownValue = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('수량'),
+                    DropdownButton<int>(
+                      value: dropDownValue,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: quantityItems.map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value 개'),
+                        );
+                      }).toList(),
+                      onChanged: (int? value) {
+                        setState(() {
+                          dropDownValue = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(width: 16),
+
+          // 등록 버튼
+          ElevatedButton(
+            onPressed: () {
+              // TODO: 상품 등록 로직
+              // Get.to(AdminApprovalRequest());
+            },
+            child: const Text('상품 등록'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 제품 목차 타이틀
+  Widget _buildHead() {
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: containerStyle(),
+
+      child: Row(
+        children: [
+          cell(
+            child: Text('NO', style: headerStyle()),
+            flex: 1,
+            alignment: Alignment.center,
+          ),
+          cell(
+            child: Text('상품 이미지', style: headerStyle()),
+            flex: 2,
+            alignment: Alignment.center,
+          ),
+          cell(
+            child: Text('상품명', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 3,
+          ),
+
+          cell(
+            child: Text('상품 갯수', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 2,
+          ),
+          cell(
+            child: Text('상품 상태', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget cell({
+    required Widget child,
+    required int flex,
+    Alignment alignment = Alignment.centerLeft,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Align(alignment: alignment, child: child),
+    );
+  }
 
   Widget _buildListView() {
     return Expanded(
       child: ListView.builder(
         itemCount: _stockList.length,
         itemBuilder: (context, index) {
+          final stock = _stockList[index];
+
           return Card(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(width: 15),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.15,
-                  child: Text(
-                    _stockList[index].productName,
-                    style: bodyStyle(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+              child: Row(
+                children: [
+                  cell(
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    flex: 1,
                   ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  child: Image.network(
-                    '${GlobalData.url}/images/view/${_stockList[index].productId}?t=${DateTime.now().millisecondsSinceEpoch}',
-                    width: 100,
-                    height: 100,
+
+                  cell(
+                    child: Image.network(
+                      '${GlobalData.url}/images/view/${stock.productId}?t=${DateTime.now().millisecondsSinceEpoch}',
+                      width: 120,
+                      height: 100,
+                    ),
+
+                    flex: 2,
+                    alignment: Alignment.center,
                   ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text(
-                    _stockList[index].productQty.toString(),
-                    style: bodyStyle(),
+                  cell(
+                    child: Text(stock.productName, style: bodyStyle()),
+                    flex: 3,
+                    alignment: Alignment.center,
                   ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text('상품 상태', style: bodyStyle()),
-                ),
-              ],
+
+                  cell(
+                    child: Text(
+                      stock.productQty.toString(),
+                      style: bodyStyle(),
+                    ),
+                    flex: 2,
+                    alignment: Alignment.center,
+                  ),
+                  cell(
+                    child: Text('상품 상태', style: bodyStyle()),
+                    flex: 2,
+                    alignment: Alignment.center,
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
-    );
-  }
-
-  Widget _buildHead() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        SizedBox(width: 15),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.15,
-          child: Text('상품명', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.3,
-          child: Text('상품 이미지', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 갯수', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 상태', style: headerStyle()),
-        ),
-      ],
     );
   }
 
@@ -324,5 +342,20 @@ class _AdminInsertProductState extends State<AdminInsertProduct> {
     } else {
       print("error : ${response.statusCode}");
     }
+  }
+
+  // ================ style ===========================
+  // 타이틀
+  TextStyle _adminTitle() {
+    return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  }
+
+  // container
+  BoxDecoration containerStyle() {
+    return BoxDecoration(
+      color: const Color.fromARGB(255, 250, 238, 220),
+      border: Border.all(color: const Color.fromARGB(255, 177, 203, 214)),
+      borderRadius: BorderRadius.circular(6),
+    );
   }
 } // class

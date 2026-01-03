@@ -139,6 +139,9 @@ class _AdminLoginState extends State<AdminLogin> {
 
                   TextField(
                     controller: adminPwController,
+                    obscureText: true,
+                    obscuringCharacter: '●',
+                    showCursor: false, 
                     decoration: InputDecoration(
                       hintText: 'Enter your password',
                       enabledBorder: OutlineInputBorder(
@@ -234,28 +237,43 @@ class _AdminLoginState extends State<AdminLogin> {
   } // build
 
   Future<void> adminLogin() async {
-    final url = Uri.parse("http://172.16.250.250:8000/employee/adminLogin");
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'employee_email': adminIdController.text.trim(),
-        'employee_password': adminPwController.text.trim(),
-      }),
-    );
-    print('3️⃣ 응답 받음');
+      
+  
+   final id = adminIdController.text.trim();
+      final pw = adminPwController.text.trim();
+    if (id.isEmpty || pw.isEmpty) {
+      Get.snackbar('로그인 실패', '아이디와 비밀번호를 입력해주세요.');
+      return;
+      }
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['result'] == 'OK') {
-        adminBox.write('employee_email', adminIdController.text.trim());
-        adminBox.write('employee_token', data['token']);
-        adminBox.write('isAdminLogin', true);
+    final url = Uri.parse("http://10.0.2.2:8000/employee/adminLogin");
+    // final url = Uri.parse("http://172.16.250.250:8000/employee/adminLogin");
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'employee_email': id,
+            'employee_password': pw,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          
+          if (data['result'] == 'OK') {
+            adminBox.write('employee_email', adminIdController.text.trim());
+            adminBox.write('employee_token', data['token']);
+            adminBox.write('isAdminLogin', true);
 
         Get.offAll(() => const AdminDashboard());
       } else {
-        Get.snackbar('로그인 실패', '아이디 또는 비밀번호를 확인하세요.');
+        Get.snackbar('로그인 실패', '아이디와 비밀번호를 확인하세요.');
       }
     }
   }
+
+
+
+
+  
 } // class
