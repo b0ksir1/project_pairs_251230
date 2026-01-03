@@ -213,7 +213,145 @@ async def insert(orders_customer_id :int = Form(...), orders_store_id:int = Form
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"}  
-    
+@router.get('/selectByCustomerStatus')
+async def select(customer:int, status:int):
+    try:
+        conn = connect()
+        curs = conn.cursor()    
+        curs.execute(
+            '''
+            select o.orders_id, o.orders_quantity, o.orders_number, o.orders_payment, o.orders_date, o.orders_status, s.store_name, p.product_name, p.product_price, size.size_name, brand.brand_name, category.category_name, color.color_name
+            from orders as o
+                inner join product as p
+                    on p.product_id = o.orders_product_id
+                inner join store as s
+                    on s.store_id = o.orders_store_id   
+                inner join size
+                    on size.size_id = p.product_size_id 
+                 inner join category
+					on category.category_id = p.product_category_id
+				inner join brand
+					on brand.brand_id = p.product_brand_id
+                 inner join color
+					on color.color_id = p.product_color_id   
+            where o.orders_customer_id = %s and o.orders_status = %s
+            ''',(customer, status)
+        )
+        rows = curs.fetchall()
+
+        result = [{'orders_id' : row[0], 
+                'orders_quantity' : row[1], 
+                'orders_number' : row[2], 
+                'orders_payment' : row[3], 
+                'orders_date' : row[4], 
+                'orders_status' : row[5], 
+                'store_name' : row[6], 
+                'product_name' : row[7], 
+                'product_price' : row[8],
+                'size_name' : row[9],
+                'brand_name' : row[10],
+                'category_name' : row[11],
+                'color_name' : row[12],
+                } for row in rows]
+        return {'results' : result}
+    finally:
+        conn.close()
+
+@router.get('/selectByKeyword')
+async def select(customer:int, search:str):
+    try:
+        conn = connect()
+        keyword = f"%{search}" if search else None
+        curs = conn.cursor()    
+        curs.execute(
+            '''
+            select o.orders_id, o.orders_quantity, o.orders_number, o.orders_payment, o.orders_date, o.orders_status, s.store_name, p.product_name, p.product_price, size.size_name, brand.brand_name, category.category_name, color.color_name
+            from orders as o
+                inner join product as p
+                    on p.product_id = o.orders_product_id
+                inner join store as s
+                    on s.store_id = o.orders_store_id   
+                inner join size
+                    on size.size_id = p.product_size_id 
+                 inner join category
+					on category.category_id = p.product_category_id
+				inner join brand
+					on brand.brand_id = p.product_brand_id
+                 inner join color
+					on color.color_id = p.product_color_id   
+            where o.orders_customer_id = %s and (
+            %s is null
+            or p.product_name like %s 
+            or o.orders_number like %s)
+            ''',(customer, keyword, keyword, keyword)
+        )
+        rows = curs.fetchall()
+
+        result = [{'orders_id' : row[0], 
+                'orders_quantity' : row[1], 
+                'orders_number' : row[2], 
+                'orders_payment' : row[3], 
+                'orders_date' : row[4], 
+                'orders_status' : row[5], 
+                'store_name' : row[6], 
+                'product_name' : row[7], 
+                'product_price' : row[8],
+                'size_name' : row[9],
+                'brand_name' : row[10],
+                'category_name' : row[11],
+                'color_name' : row[12],
+                } for row in rows]
+        return {'results' : result}
+    finally:
+        conn.close()
+
+@router.get('/selectByCustomerStatusKeyword')
+async def select(customer:int, status:int, search:str):
+    try:
+        conn = connect()
+        keyword = f"%{search}" if search else None
+        curs = conn.cursor()    
+        curs.execute(
+            '''
+            select o.orders_id, o.orders_quantity, o.orders_number, o.orders_payment, o.orders_date, o.orders_status, s.store_name, p.product_name, p.product_price, size.size_name, brand.brand_name, category.category_name, color.color_name
+            from orders as o
+                inner join product as p
+                    on p.product_id = o.orders_product_id
+                inner join store as s
+                    on s.store_id = o.orders_store_id   
+                inner join size
+                    on size.size_id = p.product_size_id 
+                 inner join category
+					on category.category_id = p.product_category_id
+				inner join brand
+					on brand.brand_id = p.product_brand_id
+                 inner join color
+					on color.color_id = p.product_color_id   
+            where o.orders_customer_id = %s and o.orders_status = %s and (
+            %s is null
+            or p.product_name like %s 
+            or o.orders_number like %s)
+            ''',(customer, status, keyword, keyword, keyword)
+        )
+        rows = curs.fetchall()
+
+        result = [{'orders_id' : row[0], 
+                'orders_quantity' : row[1], 
+                'orders_number' : row[2], 
+                'orders_payment' : row[3], 
+                'orders_date' : row[4], 
+                'orders_status' : row[5], 
+                'store_name' : row[6], 
+                'product_name' : row[7], 
+                'product_price' : row[8],
+                'size_name' : row[9],
+                'brand_name' : row[10],
+                'category_name' : row[11],
+                'color_name' : row[12],
+                } for row in rows]
+        return {'results' : result}
+    finally:
+        conn.close()     
 @router.post('/update')
 async def update(orders_customer_id :int = Form(...), orders_store_id:int = Form(...), orders_employee_id:int = Form(...), orders_product_id:int = Form(...), orders_quantity:int = Form(...), orders_number:int = Form(...), orders_payment:str = Form(...),orders_status:int=Form(...),  orders_id :int = Form(...)):
     try:
