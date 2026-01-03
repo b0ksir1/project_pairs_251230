@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -15,29 +17,13 @@ class AdminLogin extends StatefulWidget {
 class _AdminLoginState extends State<AdminLogin> {
   // -----------property-----------
 
-  final TextEditingController adminIdController =
-      TextEditingController();
-  final TextEditingController adminPwController =
-      TextEditingController();
+  final TextEditingController adminIdController = TextEditingController();
+  final TextEditingController adminPwController = TextEditingController();
   final adminBox = GetStorage();
   bool adminRemember = false;
   @override
   void initState() {
     super.initState();
-    initStrorage();
-  }
-
-  // box.write('p_password', pwController.text.trim());  -> x
-
-  initStrorage() {
-    adminBox.write(
-      'admin_userId',
-      adminIdController.text.trim(),
-    );
-    adminBox.write(
-      'admin_userPw',
-      adminPwController.text.trim(),
-    );
   }
 
   @override
@@ -64,25 +50,17 @@ class _AdminLoginState extends State<AdminLogin> {
                   fit: BoxFit.cover,
                   height: double.infinity,
                 ),
-                Container(
-                  color: Colors.black.withAlpha(120),
-                ),
+                Container(color: Colors.black.withAlpha(120)),
                 Positioned(
                   bottom: 40,
                   left: 20,
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'ON & Tap',
                         style: TextStyle(
-                          color: const Color.fromARGB(
-                            201,
-                            255,
-                            255,
-                            255,
-                          ),
+                          color: const Color.fromARGB(201, 255, 255, 255),
                           fontSize: 30,
                           fontWeight: FontWeight.w700,
                         ),
@@ -90,12 +68,7 @@ class _AdminLoginState extends State<AdminLogin> {
                       Text(
                         'Manage Your Inventory\nStreamline operations, track orders, and keep your store \nrunning smoothly.',
                         style: TextStyle(
-                          color: const Color.fromARGB(
-                            201,
-                            255,
-                            255,
-                            255,
-                          ),
+                          color: const Color.fromARGB(201, 255, 255, 255),
                           fontSize: 18,
                         ),
                       ),
@@ -108,62 +81,36 @@ class _AdminLoginState extends State<AdminLogin> {
           Expanded(
             flex: 1,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                50,
-                150,
-                50,
-                0,
-              ),
+              padding: const EdgeInsets.fromLTRB(50, 150, 50, 0),
 
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.start,
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Text(
                     '관리자 로그인',
-                    style: TextStyle(
-                      fontSize: 40,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 40, color: Colors.black),
                   ),
                   Text(
                     '환영합니다. 로그인 해주세요.',
-                    style: TextStyle(
-                      fontSize: 30,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 30, color: Colors.black),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      0,
-                      20,
-                      0,
-                      5,
-                    ),
-                    child: Text(
-                      '관리자 아이디',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 5),
+                    child: Text('관리자 아이디', style: TextStyle(fontSize: 16)),
                   ),
                   TextField(
                     controller: adminIdController,
                     decoration: InputDecoration(
                       hintText: 'abc@gmail.com',
                       enabledBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(3),
-                        borderSide: BorderSide(
-                          color: Colors.black,
-                          width: 1,
-                        ),
+                        borderRadius: BorderRadius.circular(3),
+                        borderSide: BorderSide(color: Colors.black, width: 1),
                       ),
 
                       focusedBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(2),
                         borderSide: const BorderSide(
                           color: Colors.black,
                           width: 2,
@@ -171,36 +118,23 @@ class _AdminLoginState extends State<AdminLogin> {
                       ),
 
                       errorBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(2),
-                        borderSide: const BorderSide(
-                          color: Colors.red,
-                        ),
+                        borderRadius: BorderRadius.circular(2),
+                        borderSide: const BorderSide(color: Colors.red),
                       ),
 
-                      focusedErrorBorder:
-                          OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(2),
-                            borderSide: const BorderSide(
-                              color: Colors.red,
-                              width: 2,
-                            ),
-                          ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(2),
+                        borderSide: const BorderSide(
+                          color: Colors.red,
+                          width: 2,
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(height: 20),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      0,
-                      0,
-                      0,
-                      5,
-                    ),
-                    child: Text(
-                      '관리자 비밀번호',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                    child: Text('관리자 비밀번호', style: TextStyle(fontSize: 16)),
                   ),
 
                   TextField(
@@ -208,17 +142,12 @@ class _AdminLoginState extends State<AdminLogin> {
                     decoration: InputDecoration(
                       hintText: 'Enter your password',
                       enabledBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(3),
-                        borderSide: BorderSide(
-                          color: Colors.black,
-                          width: 1,
-                        ),
+                        borderRadius: BorderRadius.circular(3),
+                        borderSide: BorderSide(color: Colors.black, width: 1),
                       ),
 
                       focusedBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(2),
                         borderSide: const BorderSide(
                           color: Colors.black,
                           width: 2,
@@ -226,27 +155,21 @@ class _AdminLoginState extends State<AdminLogin> {
                       ),
 
                       errorBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(2),
-                        borderSide: const BorderSide(
-                          color: Colors.red,
-                        ),
+                        borderRadius: BorderRadius.circular(2),
+                        borderSide: const BorderSide(color: Colors.red),
                       ),
 
-                      focusedErrorBorder:
-                          OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(2),
-                            borderSide: const BorderSide(
-                              color: Colors.red,
-                              width: 2,
-                            ),
-                          ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(2),
+                        borderSide: const BorderSide(
+                          color: Colors.red,
+                          width: 2,
+                        ),
+                      ),
                     ),
                   ),
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       // Row(
                       //   children: [
@@ -268,14 +191,12 @@ class _AdminLoginState extends State<AdminLogin> {
                       Row(
                         children: [
                           TextButton(
-                            onPressed: () => Get.to(
-                              AdminFindPassword(),
-                            ),
+                            onPressed: () {
+                              Get.to(AdminFindPassword());
+                            },
                             child: Text(
                               'Forgot Password?',
-                              style: TextStyle(
-                                color: Colors.blueAccent,
-                              ),
+                              style: TextStyle(color: Colors.blueAccent),
                             ),
                           ),
                         ],
@@ -284,12 +205,7 @@ class _AdminLoginState extends State<AdminLogin> {
                   ),
 
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      0,
-                      20,
-                      0,
-                      0,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                     child: SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -298,18 +214,13 @@ class _AdminLoginState extends State<AdminLogin> {
                           backgroundColor: Colors.black,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadiusGeometry.circular(
-                                  3,
-                                ),
+                            borderRadius: BorderRadiusGeometry.circular(3),
                           ),
                         ),
-                        onPressed: () =>
-                            Get.to(AdminDashboard()),
-                        child: Text(
-                          '로그인',
-                          style: TextStyle(fontSize: 20),
-                        ),
+                        onPressed: () async {
+                          await adminLogin();
+                        },
+                        child: Text('로그인', style: TextStyle(fontSize: 20)),
                       ),
                     ),
                   ),
@@ -321,25 +232,30 @@ class _AdminLoginState extends State<AdminLogin> {
       ),
     );
   } // build
-  //   class AuthApi {
-  //   static Future<bool> login(String id, String pw) async {
-  //     final url = Uri.parse('http://10.0.2.2:8001/admin/login');
 
-  //     final response = await http.post(
-  //       url,
-  //       headers: {'Content-Type': 'application/json'},
-  //       body: jsonEncode({
-  //         'id': id,
-  //         'password': pw,
-  //       }),
-  //     );
+  Future<void> adminLogin() async {
+    final url = Uri.parse("http://172.16.250.250:8000/employee/adminLogin");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'employee_email': adminIdController.text.trim(),
+        'employee_password': adminPwController.text.trim(),
+      }),
+    );
+    print('3️⃣ 응답 받음');
 
-  //     if (response.statusCode == 200) {
-  //       final data = jsonDecode(response.body);
-  //       return data['success'] == true;
-  //     } else {
-  //       return false;
-  //     }
-  //   }
-  // }
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['result'] == 'OK') {
+        adminBox.write('employee_email', adminIdController.text.trim());
+        adminBox.write('employee_token', data['token']);
+        adminBox.write('isAdminLogin', true);
+
+        Get.offAll(() => const AdminDashboard());
+      } else {
+        Get.snackbar('로그인 실패', '아이디 또는 비밀번호를 확인하세요.');
+      }
+    }
+  }
 } // class
