@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project_pairs_251230/model/customer.dart';
+import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/auth/find_id_password.dart';
 import 'package:project_pairs_251230/view/auth/sign_up.dart';
 import 'package:project_pairs_251230/view/product/main_page.dart';
+import 'package:http/http.dart' as http;
 
 class CustomerLogin extends StatefulWidget {
   const CustomerLogin({super.key});
@@ -16,14 +21,40 @@ class _CustomerLoginState extends State<CustomerLogin> {
   // Property
   late TextEditingController emailController;
   late TextEditingController passwordController;
+  late bool showPassword; // 비밀번호 숨김 on/off 토글
 
-  Message message = Message();
+  Message message = Message(); // util Message 기능 사용
+
+  String customerUrl = "${GlobalData.url}/customer/select";
+  List<Customer> customerList = [];
 
   @override
   void initState() {
     super.initState();
     emailController = TextEditingController();
     passwordController = TextEditingController();
+    showPassword = true;
+    
+    getcustomerData(); // customerDB 연결
+  }
+  
+  Future<void> getcustomerData() async{
+    var url = Uri.parse(customerUrl);
+    var response = await http.get(url);
+    customerList.clear();
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON["results"];
+    for(var item in result){
+      Customer customer = Customer(
+        customer_email: item['customer_email'],
+        customer_password: item['customer_password'],
+        customer_name: item['customer_name'],
+        customer_phone: item['customer_phone'],
+        customer_address: item['customer_address']
+      );
+      customerList.add(customer);
+    }
+    setState(() {});
   }
 
   @override
@@ -31,7 +62,6 @@ class _CustomerLoginState extends State<CustomerLogin> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(),
         body: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Center(
@@ -79,7 +109,6 @@ class _CustomerLoginState extends State<CustomerLogin> {
                       hintText: 'email@example.com',
                       hintStyle: TextStyle(color: Colors.grey),
                       filled: true,
-                      // fillColor: Colors.grey[200],
                     ),
                   ),
                   Padding(
@@ -96,6 +125,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
                   ),
                   TextField(
                     controller: passwordController,
+                    obscureText: showPassword,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -108,9 +138,19 @@ class _CustomerLoginState extends State<CustomerLogin> {
                       hintText: 'password',
                       hintStyle: TextStyle(color: Colors.grey),
                       filled: true,
-                      // fillColor: Colors.grey[200],
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          showPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          showPassword = !showPassword;
+                          setState(() {});
+                        },
+                      ),
                     ),
-                    obscureText: true,
                   ),
                   Align(
                     alignment: Alignment.centerRight,
@@ -147,7 +187,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
                   ),
                   Row(
                     children: [
-                      Expanded( // 남는 공간을 Divider로 채움
+                      Expanded(
                         child: Divider(
                           thickness: 1,
                           color: Colors.grey[300]
@@ -164,7 +204,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
                           ),
                         ),
                       ),
-                      Expanded( // 남는 공간을 Divider로 채움
+                      Expanded(
                         child: Divider(
                           thickness: 1,
                           color: Colors.grey[300]
@@ -175,7 +215,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
                   TextButton(
                     onPressed: () => Get.to(SignUp()),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min, // 요소 크기만큼 공간 차지
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '회원가입하기',
@@ -209,7 +249,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
       // 비밀번호가 비어있을 경우 -> SnackBar 처리
       message.errorSnackBar('Error', '비밀번호를 입력하세요.');
     }else{
-      if(emailController.text.trim()  == 'qwer' && passwordController.text.trim() == '1234'){
+      if(emailController.text.trim()  == 'qwer@naver.com' && passwordController.text.trim() == 'qwer1234!'){
         // 로그인 성공 -> 입력된 내용 지우고 메인 페이지로 이동
         emailController.clear();
         passwordController.clear();

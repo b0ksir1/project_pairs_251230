@@ -1,8 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/util/global_data.dart';
+import 'package:project_pairs_251230/view/payment/payment_options.dart';
+import 'package:project_pairs_251230/view/product/main_page.dart';
 
 class ShoppingCart extends StatefulWidget {
   const ShoppingCart({super.key});
@@ -12,60 +14,68 @@ class ShoppingCart extends StatefulWidget {
 }
 
 class _ShoppingCartState extends State<ShoppingCart> {
-  String baseUrl = "http://172.30.1.78:8000"; // 우리 FastAPI 주소로 수정
-  int customerId = 1; // 로그인 가능할떄 Get.arguments 로 수정해야함
-  bool isLoading = true;
+  final urlPath = GlobalData.url;
 
-  List<Map<String, dynamic>> cartItems = [];
+  late int customerId;
+  late String customerAddress;
+
+  bool isLoading = true;
+  List cartItems = [];
 
   @override
   void initState() {
     super.initState();
-    fetchCart();
+
+    customerId = 1;
+    customerAddress = "";
+
+    final args = Get.arguments;
+    if (args is Map) {
+      customerId = int.tryParse(args["customerId"].toString()) ?? 1;
+      customerAddress =
+          (args["customerAddress"] ?? args["customer_address"] ?? "")
+              .toString();
+    } else if (args is int) {
+      customerId = args;
+    }
+
+    getCartData();
   }
 
-  Future<void> fetchCart() async {
+  Future<void> getCartData() async {
+    isLoading = true;
+    setState(() {});
+
     try {
-      setState(() {
-        isLoading = true;
-      });
+      var url = Uri.parse("$urlPath/cart/select/$customerId");
+      var response = await http.get(url);
 
-      var url = Uri.parse("$baseUrl/cart/select/$customerId");
-      var res = await http.get(url);
-
-      if (res.statusCode != 200) {
-        throw Exception("서버 응답 오류: ${res.statusCode}");
-      }
-      debugPrint("GET => $baseUrl/cart/select/$customerId");
-
-      var data = json.decode(res.body);
-      var list = (data["results"] as List?) ?? [];
-
-      List<Map<String, dynamic>> parsed = [];
-      for (final x in list) {
-        final m = x as Map<String, dynamic>;
-        parsed.add({
-          "cart_id": m["cart_id"],
-          "name": (m["product_name"] ?? "").toString(),
-          "size": (m["size_name"] ?? "").toString(),
-          "price": (m["product_price"] is int)
-              ? m["product_price"]
-              : int.tryParse("${m["product_price"]}") ?? 0,
-          "qty": (m["cart_product_quantity"] is int)
-              ? m["cart_product_quantity"]
-              : int.tryParse("${m["cart_product_quantity"]}") ?? 1,
-          "image_base64": m["image_base64"],
-        });
+      if (response.statusCode != 200) {
+        throw "HTTP ${response.statusCode}";
       }
 
-      setState(() {
-        cartItems = parsed;
-        isLoading = false;
-      });
+      var dataConvertedJSON = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
+      List result = dataConvertedJSON["results"] ?? [];
+
+      cartItems = result.map((e) {
+        return {
+          "cart_id": e["cart_id"] ?? 0,
+          "cart_product_id": e["cart_product_id"] ?? 0,
+          "product_name": e["product_name"] ?? "",
+          "size_name": e["size_name"] ?? "",
+          "product_price": e["product_price"] ?? 0,
+          "cart_product_quantity": e["cart_product_quantity"] ?? 1,
+          "images_id": e["images_id"] ?? 0,
+        };
+      }).toList();
+
+      isLoading = false;
+      setState(() {});
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      isLoading = false;
+      setState(() {});
       Get.snackbar("장바구니", "불러오기 실패: $e");
     }
   }
@@ -73,31 +83,26 @@ class _ShoppingCartState extends State<ShoppingCart> {
   Future<void> deleteCartItem(int index) async {
     try {
       var cartId = cartItems[index]["cart_id"];
-      var url = Uri.parse("$baseUrl/cart/delete/$cartId");
+      var url = Uri.parse("$urlPath/cart/delete/$cartId");
+      var response = await http.delete(url);
 
-      var res = await http.delete(url);
-
-      if (res.statusCode != 200) {
-        throw Exception("삭제 실패: ${res.statusCode}");
+      if (response.statusCode != 200) {
+        throw "HTTP ${response.statusCode}";
       }
 
-      setState(() {
-        cartItems.removeAt(index);
-      });
+      cartItems.removeAt(index);
+      setState(() {});
     } catch (e) {
       Get.snackbar("장바구니", "삭제 실패: $e");
     }
   }
 
-  int get totalPrice {
+  int getTotalPrice() {
     int sum = 0;
-    for (final item in cartItems) {
-      int price = (item["price"] is int)
-          ? item["price"]
-          : int.tryParse("${item["price"]}") ?? 0;
-      int qty = (item["qty"] is int)
-          ? item["qty"]
-          : int.tryParse("${item["qty"]}") ?? 1;
+    for (var item in cartItems) {
+      int price = int.tryParse(item["product_price"].toString()) ?? 0;
+      int qty =
+          int.tryParse(item["cart_product_quantity"].toString()) ?? 1;
       sum += price * qty;
     }
     return sum;
@@ -110,6 +115,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
 
   @override
   Widget build(BuildContext context) {
+    int totalPrice = getTotalPrice();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -117,10 +124,12 @@ class _ShoppingCartState extends State<ShoppingCart> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Get.offAll(() => const MainPage());
+          },
         ),
-        title: Text(
+        title: const Text(
           "장바구니",
           style: TextStyle(
             color: Colors.black,
@@ -130,9 +139,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
         ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : cartItems.isEmpty
-          ? Center(
+          ? const Center(
               child: Text(
                 "장바구니가 비어있습니다",
                 style: TextStyle(
@@ -143,30 +152,30 @@ class _ShoppingCartState extends State<ShoppingCart> {
               ),
             )
           : ListView.builder(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
                 final item = cartItems[index];
 
-                int price = (item["price"] is int)
-                    ? item["price"]
-                    : int.tryParse("${item["price"]}") ?? 0;
-                int qty = (item["qty"] is int)
-                    ? item["qty"]
-                    : int.tryParse("${item["qty"]}") ?? 1;
+                int price =
+                    int.tryParse(item["product_price"].toString()) ??
+                    0;
+                int qty =
+                    int.tryParse(
+                      item["cart_product_quantity"].toString(),
+                    ) ??
+                    1;
                 int itemTotal = price * qty;
 
-                Uint8List? imageBytes;
-                try {
-                  String? b64 = item["image_base64"];
-                  if (b64 != null && b64.isNotEmpty) {
-                    imageBytes = base64Decode(b64);
-                  }
-                } catch (_) {}
+                int imagesId =
+                    int.tryParse(item["images_id"].toString()) ?? 0;
+
+                final imageUrl =
+                    "$urlPath/images/view/$imagesId?t=${DateTime.now().millisecondsSinceEpoch}";
 
                 return Container(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  decoration: BoxDecoration(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     border: Border(
                       bottom: BorderSide(
@@ -183,13 +192,24 @@ class _ShoppingCartState extends State<ShoppingCart> {
                         child: Container(
                           width: 100,
                           height: 100,
-                          color: Color(0xFFE5E7EB),
-                          child: imageBytes != null
-                              ? Image.memory(imageBytes)
-                              : Icon(Icons.image, color: Colors.grey),
+                          color: const Color(0xFFE5E7EB),
+                          child: imagesId == 0
+                              ? const Icon(
+                                  Icons.image,
+                                  color: Colors.grey,
+                                )
+                              : Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      const Icon(
+                                        Icons.image,
+                                        color: Colors.grey,
+                                      ),
+                                ),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment:
@@ -201,8 +221,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    item["name"].toString(),
-                                    style: TextStyle(
+                                    item["product_name"].toString(),
+                                    style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
                                       color: Colors.black,
@@ -210,10 +230,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                   ),
                                 ),
                                 InkWell(
-                                  onTap: () {
-                                    deleteCartItem(index);
-                                  },
-                                  child: Padding(
+                                  onTap: () => deleteCartItem(index),
+                                  child: const Padding(
                                     padding: EdgeInsets.only(left: 8),
                                     child: Icon(
                                       Icons.close,
@@ -224,19 +242,19 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              "사이즈 : ${item["size"]} / 수량:$qty",
-                              style: TextStyle(
+                              "사이즈 : ${item["size_name"]} / 수량:$qty",
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: Color(0xFF6B7280),
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               formatWon(itemTotal),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.black,
                                 fontWeight: FontWeight.w900,
@@ -253,17 +271,17 @@ class _ShoppingCartState extends State<ShoppingCart> {
       bottomNavigationBar: SafeArea(
         top: false,
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
             border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
           ),
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
-                  Text(
+                  const Text(
                     "총 결제 금액",
                     style: TextStyle(
                       fontSize: 12,
@@ -271,10 +289,10 @@ class _ShoppingCartState extends State<ShoppingCart> {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  Spacer(),
+                  const Spacer(),
                   Text(
                     formatWon(totalPrice),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Colors.black,
                       fontWeight: FontWeight.w900,
@@ -282,7 +300,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                   ),
                 ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -290,11 +308,19 @@ class _ShoppingCartState extends State<ShoppingCart> {
                   onPressed: cartItems.isEmpty
                       ? null
                       : () {
+                          if (customerAddress.trim().isEmpty) {
+                            Get.snackbar("경고", "고객 주소가 없습니다.");
+                            return;
+                          }
+
                           Get.to(
-                            () => Scaffold(
-                              appBar: AppBar(title: Text("결제(임시)")),
-                              body: Center(child: Text("결제 화면으로 이동")),
-                            ),
+                            () => const PaymentOptions(),
+                            arguments: {
+                              "customerId": customerId,
+                              "customerAddress": customerAddress,
+                              "totalPrice": totalPrice,
+                              "cartItems": cartItems,
+                            },
                           );
                         },
                   style: ElevatedButton.styleFrom(
@@ -303,7 +329,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     "결제하기",
                     style: TextStyle(
                       color: Colors.white,

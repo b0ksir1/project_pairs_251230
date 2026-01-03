@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/model/product.dart';
+import 'package:project_pairs_251230/model/product_detail_item.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,25 +22,33 @@ class _ProductDetailState extends State<ProductDetail> {
   int _selectedColorIndex = 0;
   bool _isLiked = false; // wish controller
 
+
+
   Product? _product;
-  late bool _isLoadComplete;
+
+
+
+  List<ProductDetailItem> _productList = [];
   late List<int> _productImages = [];
+  List<ProductDetailItem> _productColorItemList = [];
+  Set _productSize = {};
+  Set _productSizeName = {};
+  Set _productColor = {};
+  Set _productColorName = {};
+
+
+
   
   
   // A1: 선택 가능한 사이즈 목록 (220부터 290까지 5단위)
-  final List<String> _availableSizes = [
-    for (int size = 220; size <= 300; size += 5) size.toString(),
-  ];
+  // final List<String> _availableSizes = [
+  //   for (int size = 220; size <= 300; size += 5) size.toString(),
+  // ];
   // A1: 현재 선택된 사이즈
   String? _selectedSize;
 
   // Property
   late List<Product> list; // 상품1개정보
-  late int sizeStockCheck; // 재고수량 check
-  late Map<int, int> sizeStock; // 재고수량
-
-
-
 
   int product_id = Get.arguments ?? 1;
 
@@ -51,9 +60,6 @@ class _ProductDetailState extends State<ProductDetail> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    sizeStockCheck = 0;
-    sizeStock = {};
-    _isLoadComplete = false;
     
     // 넘겨받은 imageUrl을 첫 번째 이미지로 설정 (다른 색상 더미는 유지)
 
@@ -61,31 +67,12 @@ class _ProductDetailState extends State<ProductDetail> {
     // +++ 상품 DB 연결
     getProductData(product_id);
     getProductImages(product_id);
-    
     // +++ 위시리스트 연결
     // _loadWishState();
   }
 
   // +++ 상품 DB 연결
-  Future getProductData(int id) async {
-    var url = Uri.parse(
-      '${GlobalData.url}/product/select/$id',
-    );
-    var response = await http.get(url);
-
-    // print('getProductData : ${response.body} / $url');
-
-    if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
-      var results = dataConvertedData['results'];
-      print(results);
-      _product = Product.fromJson(results.first);
-
-      setState(() {_isLoadComplete = true;});
-    } else {
-      print("error : ${response.statusCode}");
-    }
-  }
+  
 
   Future getProductImages(int id) async{
      var url = Uri.parse(
@@ -105,7 +92,7 @@ class _ProductDetailState extends State<ProductDetail> {
         _productImages.add(item['images_id']);
       }
 
-      setState(() {_isLoadComplete = true;});
+      setState(() {});
     } else {
       print("error : ${response.statusCode}");
     }
@@ -251,6 +238,89 @@ class _ProductDetailState extends State<ProductDetail> {
     );
   }
 
+
+  // === Functions ===
+
+  Future getProductData(int id) async {
+    var url = Uri.parse(
+      '${GlobalData.url}/product/selectById/$id',
+    );
+    var response = await http.get(url);
+
+    // print('getProductData : ${response.body} / $url');
+
+    if (response.statusCode == 200) {
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      var results = dataConvertedData['results'];
+      print(results);
+      _product = Product.fromJson(results.first);
+      
+      getProductDataList(_product!.product_name);
+      setState(() {});
+    } else {
+      print("error : ${response.statusCode}");
+    }
+  }
+
+  Future getProductDataList(String name) async{
+    var url = Uri.parse(
+      '${GlobalData.url}/product/selectByName/$name',
+    );
+    var response = await http.get(url);
+
+    print('getProductData : ${response.body} / $url');
+
+    if (response.statusCode == 200) {
+      _productList.clear();
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      List results = dataConvertedData['results'];
+      print(results);
+      for(var item in results)
+      {
+          ProductDetailItem product = ProductDetailItem(
+            productId: item['product_id'],
+            colorId: item['product_color_id'],
+            colorName: item['color_name'],
+            brandId: item['product_brand_id'],
+            categoryId: item['product_category_id'],
+            sizeId: item['product_size_id'],
+            sizeName: item['size_name'],
+            price: item['product_price'],
+            productDescription: item['product_description'],
+            qty: item['stock_quantity'],
+          );
+
+          _productList.add(product);
+          // _productSize.add(product.sizeId);
+          _productColor.add(product.colorId);
+
+          // bool possible = true;
+          // for(var i in _productColorItemList)
+          // {
+          //   if(i.colorId == product.colorId)
+          //   {
+          //     possible = false;
+          //     break;
+          //   }
+          // }
+          // if(possible) 
+          // {
+          //   _productColorItemList.add(product);
+          // }
+      }
+
+      setState(() {});
+    } else {
+      print("error : ${response.statusCode}");
+    }
+  }
+
+  void classify()
+  { 
+    
+  }
+
+  // === Widget ===
   // 앱바
   AppBar _buildAppBar() {
     return AppBar(
@@ -336,16 +406,18 @@ class _ProductDetailState extends State<ProductDetail> {
 
   // 색상 선택 리스트
   Widget _buildColorSelector() {
+    // print("${GlobalData.url}/images/view/${_productColorItemList[_selectedColorIndex].productId}" );
     return Container(
       height: 80,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(_productImages.length, (index) {
+        children: List.generate(_productColor.length, (index) {
           return GestureDetector(
             onTap: () {
               setState(() {
                 _selectedColorIndex = index;
+
                 // 실제 앱에선 여기서 Carousel 페이지도 이동시킬 수 있음
               });
             },
@@ -361,6 +433,7 @@ class _ProductDetailState extends State<ProductDetail> {
                       : Colors.transparent,
                   width: 2,
                 ),
+                
                 image: DecorationImage(
                   image: NetworkImage('${GlobalData.url}/images/view/${_productImages[index]}',),
                   fit: BoxFit.cover,
@@ -381,8 +454,12 @@ class _ProductDetailState extends State<ProductDetail> {
         return 0;
       }
       final s = int.tryParse(_selectedSize!) ?? 0;
-      sizeStockCheck = sizeStock[s] ?? 0;
-      return sizeStock[s] ?? 0; // 없는 사이즈면 0
+
+
+      // sizeStockCheck = sizeStock[s] ?? 0;
+      // return sizeStock[s] ?? 0; // 없는 사이즈면 0
+
+      return 0;
     }
 
     return Column(
@@ -402,7 +479,7 @@ class _ProductDetailState extends State<ProductDetail> {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: _availableSizes.map((size) {
+              children: _productSize.map((size) {
                 final isSelected = _selectedSize == size;
                 return GestureDetector(
                   onTap: () {
@@ -461,7 +538,8 @@ class _ProductDetailState extends State<ProductDetail> {
                 return;
               }
               final selectedSizeInt = int.tryParse(_selectedSize!) ?? 0;
-              final stock = sizeStock[selectedSizeInt] ?? 0;
+              // final stock = sizeStock[selectedSizeInt] ?? 0;
+                final stock = 0;
 
               if (stock <= 0) {
                 Get.snackbar(
@@ -533,8 +611,8 @@ class _ProductDetailState extends State<ProductDetail> {
                       return;
                     }
                     final selectedSizeInt = int.tryParse(_selectedSize!) ?? 0;
-                    final stock = sizeStock[selectedSizeInt] ?? 0;
-
+                    // final stock = sizeStock[selectedSizeInt] ?? 0;
+                    final stock = 0;
                     if (stock <= 0) {
                       Get.snackbar(
                         "경고",

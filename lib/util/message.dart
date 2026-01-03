@@ -15,6 +15,16 @@ class Message {
       colorText: Colors.white,
     );
   }
+  void successSnackBar(String title, String message){
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.TOP,
+      duration: Duration(seconds: 2),
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+    );
+  }
 
   // Dialog
   void showDialog(String title, String message) {
