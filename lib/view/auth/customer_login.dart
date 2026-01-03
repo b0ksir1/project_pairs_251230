@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:project_pairs_251230/model/customer.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/auth/find_id_password.dart';
@@ -25,36 +24,12 @@ class _CustomerLoginState extends State<CustomerLogin> {
 
   Message message = Message(); // util Message 기능 사용
 
-  String customerUrl = "${GlobalData.url}/customer/select";
-  List<Customer> customerList = [];
-
   @override
   void initState() {
     super.initState();
     emailController = TextEditingController();
     passwordController = TextEditingController();
     showPassword = true;
-    
-    getcustomerData(); // customerDB 연결
-  }
-  
-  Future<void> getcustomerData() async{
-    var url = Uri.parse(customerUrl);
-    var response = await http.get(url);
-    customerList.clear();
-    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
-    List result = dataConvertedJSON["results"];
-    for(var item in result){
-      Customer customer = Customer(
-        customer_email: item['customer_email'],
-        customer_password: item['customer_password'],
-        customer_name: item['customer_name'],
-        customer_phone: item['customer_phone'],
-        customer_address: item['customer_address']
-      );
-      customerList.add(customer);
-    }
-    setState(() {});
   }
 
   @override
@@ -249,16 +224,29 @@ class _CustomerLoginState extends State<CustomerLogin> {
       // 비밀번호가 비어있을 경우 -> SnackBar 처리
       message.errorSnackBar('Error', '비밀번호를 입력하세요.');
     }else{
-      if(emailController.text.trim()  == 'qwer@naver.com' && passwordController.text.trim() == 'qwer1234!'){
-        // 로그인 성공 -> 입력된 내용 지우고 메인 페이지로 이동
-        emailController.clear();
-        passwordController.clear();
-        Get.to(MainPage());
-      }else{
-        // 이메일 또는 비밀번호가 틀린 경우 -> SnackBar 처리
-        message.errorSnackBar('Error', '이메일 또는 비밀번호가 틀렸습니다.');
-      }
+      customerLogin();
     } 
+  }
+
+  Future<void> customerLogin() async{
+    var url = Uri.parse("${GlobalData.url}/customer/login");
+    var response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({ // 백엔드 서버로 로그인 데이터 전송
+        'email': emailController.text.trim(),
+        'password': passwordController.text.trim(),
+      }),
+    );
+
+    var jsonData = json.decode(utf8.decode(response.bodyBytes));
+    if (response.statusCode == 200) {
+      // 로그인 성공 -> MainPage 이동
+      Get.to(MainPage());
+    } else {
+      // 로그인 실패 -> errorSnackBar 출력
+      message.errorSnackBar('Error', jsonData['detail']);
+    }
   }
 
 } // class

@@ -39,7 +39,7 @@ class _SignUpState extends State<SignUp> {
   // 전화번호 정규식 
   final phoneRegex = RegExp(r'^01[016789]-\d{3,4}-\d{4}$');
 
-  String customerUrl = "${GlobalData.url}/customer/select";
+  String selectUrl = "${GlobalData.url}/customer/select";
   String insertUrl = "${GlobalData.url}/customer/insert"; // 추가: 회원가입 API URL
   List<Customer> customerList = [];
 
@@ -57,11 +57,12 @@ class _SignUpState extends State<SignUp> {
     showConfirmPassword = true;
     emailChecked = false;
 
-    getcustomerData(); // customerDB 연결
+    // getcustomerData(); // customerDB 연결
   }
 
+  // 회원 조회
   Future<void> getcustomerData() async{
-    var url = Uri.parse(customerUrl);
+    var url = Uri.parse(selectUrl);
     var response = await http.get(url);
     customerList.clear();
     var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
@@ -445,9 +446,9 @@ class _SignUpState extends State<SignUp> {
   } // build
 
   // --- Functios ---
-  Future<void> checkSignup() async { // Future를 기다리기 위해 async 추가
-    // Form 안의 TextFormField validator 전체 검사
+  Future<void> checkSignup() async{ // Future를 기다리기 위해 async 추가
     if(_formKey.currentState!.validate()){
+    // Form 안의 TextFormField validator 전체 검사
       if(emailChecked != true){
         // 이메일 중복 확인 통과하지 않았을 경우
         message.errorSnackBar('Error', '이메일 중복 확인을 해주세요.');
@@ -458,11 +459,11 @@ class _SignUpState extends State<SignUp> {
         // 모든 조건 통과 -> 서버에 데이터 삽입 시도
         bool isSuccess = await insertCustomer();
 
-        if (isSuccess) {
+        if(isSuccess){
            // 서버에 성공적으로 삽입됨
             Get.defaultDialog(
               title: 'Success',
-              middleText:'회원가입 완료! 🎉',
+              middleText:'회원가입이 완료되었습니다!',
               actions: [
                 TextButton(
                   onPressed: () {
@@ -477,10 +478,10 @@ class _SignUpState extends State<SignUp> {
                     phoneController.clear();
                     agreeTOS = false;
                     agreePP = false;
-                    emailChecked = false; // 중복 확인 상태 초기화
+                    emailChecked = false; // 이메일 중복 확인 상태 초기화
 
                     // 페이지 이동
-                    Get.to(CustomerLogin())!.then((value) => getcustomerData(),);
+                    Get.to(CustomerLogin());
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -490,7 +491,7 @@ class _SignUpState extends State<SignUp> {
                 ),
               ],
             );
-        } else {
+        }else{
           // 서버 통신 또는 DB 삽입 실패
           message.errorSnackBar('Error', '회원가입 중 서버 오류가 발생했습니다.');
         }
@@ -498,14 +499,14 @@ class _SignUpState extends State<SignUp> {
     }
   }
 
-  // 이메일 중복 확인 (로컬 데이터 기준)
+  // 이메일 중복 확인
   void checkEmailDuplicate() async{
     String email = emailController.text.trim();
 
-    if(!emailRegex.hasMatch(email)){
-      // 중복 확인 -> 잘못된 이메일
-      return message.errorSnackBar('Error', '올바른 이메일을 입력하세요.');
-    }
+    // if(!emailRegex.hasMatch(email)){
+    //   // 중복 확인 -> 잘못된 이메일
+    //   return message.errorSnackBar('Error', '올바른 이메일을 입력하세요.');
+    // }
 
     // 서버에서 가져온 리스트를 사용하여 중복 확인
     bool isDuplicate = customerList.any((customer) => customer.customer_email == email);
@@ -515,7 +516,7 @@ class _SignUpState extends State<SignUp> {
       emailChecked = true;
       message.successSnackBar('Success', '$email\n사용 가능한 이메일입니다.');
       setState(() {}); // 버튼 활성화 상태 갱신
-    }else {
+    }else{
       // 중복 확인 -> 사용 불가
       emailChecked = false;
       message.errorSnackBar('Error', '$email\n이미 사용 중인 이메일입니다.');
