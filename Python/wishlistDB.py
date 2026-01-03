@@ -67,6 +67,25 @@ async def select(wishlist_customer_id: int):
 
     return {"results": results}
 
+@router.get('/hasProduct')
+async def select(customer_id: int, product_id:int):
+    conn = connect()
+    curs = conn.cursor()    
+    curs.execute(
+        '''
+        SELECT
+            count(wishlist_id) from wishlist
+            where wishlist_customer_id = %s and wishlist_product_id = %s;
+    ''',(customer_id,product_id)
+    )
+
+    rows = curs.fetchall()
+    conn.close()
+
+    result = [{
+               'count' : row[0], 
+               } for row in rows]
+    return {'results' : result}
 
 @router.post('/insert')
 async def insert(
