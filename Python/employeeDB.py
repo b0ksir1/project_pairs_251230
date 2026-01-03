@@ -80,6 +80,36 @@ async def select():
                } for row in rows]
     return {'results' : result}
 
+
+@router.get('/getNameWithApproval/{employeeId}')
+async def select(employeeId:int):
+    conn = connect()
+    curs = conn.cursor()    
+    curs.execute(
+        '''
+        select e.employee_name as name,
+        s.employee_name as sname,
+        d.employee_name as dname,
+        s.employee_id, d.employee_id
+        from employee as e
+            left join employee as s 
+                on e.senior_id = s.employee_id
+            left join employee as d
+                on s.senior_id = d.employee_id
+        where e.employee_id = %s
+    ''',(employeeId,)
+    )
+    rows = curs.fetchall()
+    conn.close()
+
+    result = [{'name' : row[0], 
+               'sname' : row[1], 
+               'dname' : row[2], 
+               'sid' : row[3], 
+               'did' : row[4], 
+               } for row in rows]
+    return {'results' : result}
+
 @router.post('/insert')
 async def insert(employee_role :int = Form(...), 
                  employee_name:str = Form(...), 

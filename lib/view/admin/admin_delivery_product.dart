@@ -61,74 +61,9 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.search),
-                        hintText: '고객명으로 검색',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      onSubmitted: (value) {
-                        if(_searchController.text.trim().isNotEmpty)
-                        {
-                          getOrderDataByKeyword(_selectedStoreIndex);
-                        }
-                      },
-                    ),
-                  ),
+                  _buildSearch(),
                   SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Container(
-                      height: 44,
-                      width: MediaQuery.widthOf(context) * 0.2,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.grey[200],
-                      ),
-                      child: Center(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          dropdownColor: Theme.of(
-                            context,
-                          ).colorScheme.onPrimary,
-                          iconEnabledColor: Theme.of(context).colorScheme.error,
-                          iconDisabledColor: Theme.of(
-                            context,
-                          ).colorScheme.onError,
-                          value: _selectedStoreValue,
-                          icon: const Icon(Icons.keyboard_arrow_down),
-                          items: _storeList.map((list) {
-                            return DropdownMenuItem<String>(
-                              value: list,
-                              child: Text(
-                                list,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value == null) return;
-                            _selectedStoreValue = value;
-                            _selectedStoreIndex = _storeList.indexOf(
-                              _selectedStoreValue,
-                            );
-                            getOrderData(_selectedStoreIndex + 1);
-                            setState(() {});
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildDropDownButton(),
                   SizedBox(height: 8),
                   Expanded(
                     child: _ordersList.isEmpty
@@ -148,6 +83,72 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
     );
   } // build
   // === Widget ===
+
+  Widget _buildDropDownButton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: Container(
+        height: 44,
+        width: MediaQuery.widthOf(context) * 0.2,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.grey[200],
+        ),
+        child: Center(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            dropdownColor: Theme.of(context).colorScheme.onPrimary,
+            iconEnabledColor: Theme.of(context).colorScheme.error,
+            iconDisabledColor: Theme.of(context).colorScheme.onError,
+            value: _selectedStoreValue,
+            icon: const Icon(Icons.keyboard_arrow_down),
+            items: _storeList.map((list) {
+              return DropdownMenuItem<String>(
+                value: list,
+                child: Text(
+                  list,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value == null) return;
+              _selectedStoreValue = value;
+              _selectedStoreIndex = _storeList.indexOf(_selectedStoreValue);
+              getOrderData(_selectedStoreIndex + 1);
+              setState(() {});
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearch() {
+    return SizedBox(
+      width: double.infinity,
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.search),
+          hintText: '고객명으로 검색',
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        onSubmitted: (value) {
+          if (_searchController.text.trim().isNotEmpty) {
+            getOrderDataByKeyword(_selectedStoreIndex);
+          }
+        },
+      ),
+    );
+  }
 
   Widget _buildOrderCard(int index) {
     return Card(
@@ -209,7 +210,9 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
         stockUrl,
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: {
-          "stock_quantity": (_ordersList[index].stockQty - _ordersList[index].ordersQty).toString(),
+          "stock_quantity":
+              (_ordersList[index].stockQty - _ordersList[index].ordersQty)
+                  .toString(),
           "stock_product_id": _ordersList[index].productId.toString(),
         },
       );
@@ -257,7 +260,9 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
   } // getOrderData
 
   Future getOrderDataByKeyword(int store) async {
-    var url = Uri.parse("${GlobalData.url}/orders/selectRequestByStoreKeyword?store_id=$store&search=${_searchController.text.trim()}");
+    var url = Uri.parse(
+      "${GlobalData.url}/orders/selectRequestByStoreKeyword?store_id=$store&search=${_searchController.text.trim()}",
+    );
     var response = await http.get(url);
     // print("getOrderData : ${response.body} / $url ");
     if (response.statusCode == 200) {
