@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:project_pairs_251230/model/orders_delivery.dart';
-import 'package:project_pairs_251230/util/order_status.dart';
+import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/util/side_menu.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
 import 'package:http/http.dart' as http;
@@ -20,12 +21,13 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
   late List<OrdersDelivery> _ordersList;
   late List<String> _storeList;
 
-  final String _ordersUrl = "${GlobalData.url}/orders";
+  // final String _ordersUrl = "${GlobalData.url}/orders";
   final String _storeUrl = "${GlobalData.url}/store/select";
-  final String _stockUrl = "${GlobalData.url}/stock/select";
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedStoreValue = "";
+  int _selectedStoreIndex = 1;
+  Message message = Message();
 
   @override
   void initState() {
@@ -33,7 +35,7 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
     _ordersList = [];
     _storeList = [];
     getStoreData();
-    getOrderData();
+    getOrderData(_selectedStoreIndex);
   }
 
   @override
@@ -45,90 +47,101 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
             selectedMenu: SideMenu.delivery,
             onMenuSelected: (menu) {},
           ),
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text('대리점 발송', 
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54 
-                ),),
-              ),
-              Expanded(
-                child: _ordersList.isEmpty
-                    ? Center(child: Text('데이터가 비어있음'))
-                    : Column(
-                        children: [
-                          TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.search),
-                              hintText: '주문번호, 고객명으로 검색',
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 0,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButton(
-                                  dropdownColor: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                  iconEnabledColor: Theme.of(
-                                    context,
-                                  ).colorScheme.error,
-                                  iconDisabledColor: Theme.of(
-                                    context,
-                                  ).colorScheme.onError,
-                                  value: _selectedStoreValue,
-                                  icon: Icon(Icons.keyboard_arrow_down),
-                                  items: _storeList.map((String list) {
-                                    return DropdownMenuItem(
-                                      value: list,
-                                      child: Text(
-                                        list,
-                                        style: TextStyle(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    _selectedStoreValue = value!;
-                                    setState(() {});
-                                  },
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Text(
+                    '대리점 발송',
+                    style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        hintText: '고객명으로 검색',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onSubmitted: (value) {
+                        if(_searchController.text.trim().isNotEmpty)
+                        {
+                          getOrderDataByKeyword(_selectedStoreIndex);
+                        }
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: Container(
+                      height: 44,
+                      width: MediaQuery.widthOf(context) * 0.2,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.grey[200],
+                      ),
+                      child: Center(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          dropdownColor: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary,
+                          iconEnabledColor: Theme.of(context).colorScheme.error,
+                          iconDisabledColor: Theme.of(
+                            context,
+                          ).colorScheme.onError,
+                          value: _selectedStoreValue,
+                          icon: const Icon(Icons.keyboard_arrow_down),
+                          items: _storeList.map((list) {
+                            return DropdownMenuItem<String>(
+                              value: list,
+                              child: Text(
+                                list,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // 리스트
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: _ordersList.length,
-                              itemBuilder: (context, index) {
-                                return _buildOrderCard(index);
-                              },
-                            ),
-                          ),
-                        ],
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            _selectedStoreValue = value;
+                            _selectedStoreIndex = _storeList.indexOf(
+                              _selectedStoreValue,
+                            );
+                            getOrderData(_selectedStoreIndex + 1);
+                            setState(() {});
+                          },
+                        ),
                       ),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Expanded(
+                    child: _ordersList.isEmpty
+                        ? Center(child: Text('주문 내역이 없습니다.'))
+                        : ListView.builder(
+                            itemCount: _ordersList.length,
+                            itemBuilder: (context, index) =>
+                                _buildOrderCard(index),
+                          ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -148,17 +161,23 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
                 height: 200,
               ),
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_ordersList[index].productName),
+                  Text('주문 번호: ${_ordersList[index].ordersNumber}'),
+                  Text('상품명: ${_ordersList[index].productName}'),
                   Text('고객명: ${_ordersList[index].customerName}'),
                   Text('희망 대리점: ${_ordersList[index].storeName}'),
+                  Text('재고 수량: ${_ordersList[index].stockQty}'),
                 ],
               ),
             ],
           ),
-          ElevatedButton(onPressed: () {
-            updateOrderStatus();
-          }, child: Text('발송 처리')),
+          ElevatedButton(
+            onPressed: () {
+              showDialog(index);
+            },
+            child: Text('발송 처리'),
+          ),
         ],
       ),
     );
@@ -166,14 +185,51 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
 
   // === Functions ===
 
-  Future updateOrderStatus() async {
-    print('대리점으로 발송');
+  Future updateOrderStatus(int index) async {
+    var orderUrl = Uri.parse("${GlobalData.url}/orders/updateStatus");
+    var orderRes = await http.post(
+      orderUrl,
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: {
+        "orders_status": "1",
+        "orders_id": _ordersList[index].ordersId.toString(),
+      },
+    );
+
+    if (orderRes.statusCode != 200) {
+      throw Exception("추가 실패: ${orderRes.statusCode}");
+    }
+
+    var body = json.decode(orderRes.body);
+    if ((body["results"] ?? "") != "OK") {
+      throw Exception("추가 실패: ${orderRes.body}");
+    } else {
+      var stockUrl = Uri.parse("${GlobalData.url}/stock/update");
+      var stockRes = await http.post(
+        stockUrl,
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: {
+          "stock_quantity": (_ordersList[index].stockQty - _ordersList[index].ordersQty).toString(),
+          "stock_product_id": _ordersList[index].productId.toString(),
+        },
+      );
+
+      if (stockRes.statusCode != 200) {
+        throw Exception("추가 실패: ${stockRes.statusCode}");
+      } else {
+        var body = json.decode(stockRes.body);
+        if ((body["results"] ?? "") != "OK") {
+          throw Exception("추가 실패: ${stockRes.body}");
+        } else {
+          message.successSnackBar('발송 완료', '정상적으로 발송이 완료 되었답니다.');
+          getOrderData(_selectedStoreIndex);
+        }
+      }
+    }
   }
 
-  Future getOrderData() async {
-    var url = Uri.parse(
-      '$_ordersUrl/selectByStatus${OrderStatus.request.code}',
-    );
+  Future getOrderData(int store) async {
+    var url = Uri.parse("${GlobalData.url}/orders/selectRequestByStore/$store");
     var response = await http.get(url);
     // print("getOrderData : ${response.body} / $url ");
     if (response.statusCode == 200) {
@@ -185,10 +241,40 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
           ordersId: item['orders_id'],
           ordersNumber: item['orders_number'],
           ordersQty: item['orders_quantity'],
+          stockQty: item['stock_quantity'],
           ordersDate: item['orders_date'],
           storeName: item['store_name'],
           productName: item['product_name'],
           customerName: item['customer_name'],
+          productId: item['product_id'],
+        );
+        _ordersList.add(order);
+      }
+      setState(() {});
+    } else {
+      print("error : ${response.statusCode}");
+    }
+  } // getOrderData
+
+  Future getOrderDataByKeyword(int store) async {
+    var url = Uri.parse("${GlobalData.url}/orders/selectRequestByStoreKeyword?store_id=$store&search=${_searchController.text.trim()}");
+    var response = await http.get(url);
+    // print("getOrderData : ${response.body} / $url ");
+    if (response.statusCode == 200) {
+      _ordersList.clear();
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      List results = dataConvertedData['results'];
+      for (var item in results) {
+        OrdersDelivery order = OrdersDelivery(
+          ordersId: item['orders_id'],
+          ordersNumber: item['orders_number'],
+          ordersQty: item['orders_quantity'],
+          stockQty: item['stock_quantity'],
+          ordersDate: item['orders_date'],
+          storeName: item['store_name'],
+          productName: item['product_name'],
+          customerName: item['customer_name'],
+          productId: item['product_id'],
         );
         _ordersList.add(order);
       }
@@ -199,7 +285,7 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
   } // getOrderData
 
   Future getStoreData() async {
-    var url = Uri.parse('$_storeUrl');
+    var url = Uri.parse(_storeUrl);
     var response = await http.get(url);
     // print("getOrderData : ${response.body} / $url ");
     if (response.statusCode == 200) {
@@ -207,13 +293,6 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       List results = dataConvertedData['results'];
       for (var item in results) {
-        // Store store = Store(
-        //   storeId: item['store_id'],
-        //   storeName: item['store_name'],
-        //   storePhone: item['store_phone'],
-        //   storeLat: item['store_lat'],
-        //   storeLng: item['store_lng'],
-        // );
         _storeList.add(item['store_name']);
       }
       _selectedStoreValue = _storeList.first;
@@ -222,4 +301,32 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
       print("error : ${response.statusCode}");
     }
   } // getStoreData
+
+  void showDialog(int index) {
+    Get.defaultDialog(
+      title: '상품 발송',
+      middleText:
+          '${_ordersList[index].storeName} 대리점으로 ${_ordersList[index].productName} 상품을 ${_ordersList[index].ordersQty}개 보내겠습니까?',
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Get.back();
+          },
+          child: Text('취소'),
+        ),
+
+        ElevatedButton(
+          onPressed: () {
+            if (_ordersList[index].stockQty >= _ordersList[index].ordersQty) {
+              updateOrderStatus(index);
+            } else {
+              message.errorSnackBar('상품 발송 실패', '남은 재고가 부족합니다.');
+            }
+            Get.back();
+          },
+          child: Text('확인'),
+        ),
+      ],
+    );
+  }
 } // class

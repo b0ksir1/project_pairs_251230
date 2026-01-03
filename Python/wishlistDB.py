@@ -1,8 +1,6 @@
-# wishlistDB.py
 from fastapi import APIRouter, Form
 import pymysql
 import config
-import base64
 
 router = APIRouter()
 
@@ -17,56 +15,104 @@ def connect():
 
 @router.get('/select/{wishlist_customer_id}')
 async def select(wishlist_customer_id: int):
-    conn = connect()
-    curs = conn.cursor()
+    try:
+        conn = connect()
+        curs = conn.cursor()
 
-    curs.execute(
-        """
+        sql = """
         SELECT
-            wishlist.wishlist_id,
-            wishlist.wishlist_customer_id,
-            wishlist.wishlist_product_id,
-            wishlist.wishlist_date,
-            product.product_name,
-            product.product_price,
-            product.product_size_id,
-            size.size_name,
-            images.image
-        FROM wishlist
-        JOIN product ON product.product_id = wishlist.wishlist_product_id
-        LEFT JOIN size ON size.size_id = product.product_size_id
-        LEFT JOIN images ON images.images_product_id = product.product_id
-        WHERE wishlist.wishlist_customer_id = %s
-        ORDER BY wishlist.wishlist_id DESC
-        """,
-        (wishlist_customer_id,)
+            w.wishlist_id,
+            w.wishlist_customer_id,
+            w.wishlist_product_id,
+            w.wishlist_date,
+            p.product_name,
+            p.product_price,
+            (
+                SELECT i.images_id
+                FROM images i
+                WHERE i.images_product_id = p.product_id
+                ORDER BY i.images_id ASC
+                LIMIT 1
+            ) AS images_id
+        FROM wishlist w
+        JOIN product p ON p.product_id = w.wishlist_product_id
+        WHERE w.wishlist_customer_id = %s
+        ORDER BY w.wishlist_id DESC
+        """
+        curs.execute(sql, (wishlist_customer_id,))
+        rows = curs.fetchall()
+        conn.close()
+
+        result = []
+        for row in rows:
+            wishlist_id = row[0]
+            customer_id = row[1]
+            product_id = row[2]
+            wishlist_date = row[3]
+            product_name = row[4]
+            product_price = row[5]
+            images_id = row[6]
+
+            result.append({
+                "wishlist_id": wishlist_id,
+                "wishlist_customer_id": customer_id,
+                "wishlist_product_id": product_id,
+                "wishlist_date": str(wishlist_date) if wishlist_date else None,
+                "product_name": product_name,
+                "product_price": int(product_price) if product_price is not None else 0,
+                "images_id": images_id,
+            })
+
+        return {"results": result}
+
+    except Exception as e:
+        print("Error ", e)
+        return {"results": "Error", "message": str(e)}
+
+
+@router.get('/exists/{customer_id}/{product_id}')
+async def exists(customer_id: int, product_id: int):
+    try:
+        conn = connect()
+        curs = conn.cursor()
+
+        curs.execute(
+            """
+            SELECT 1
+            FROM wishlist
+            WHERE wishlist_customer_id = %s AND wishlist_product_id = %s
+            LIMIT 1
+            """,
+            (customer_id, product_id)
+        )
+        row = curs.fetchone()
+        conn.close()
+
+        return {"results": "OK", "exists": True if row else False}
+
+    except Exception as e:
+        print("Error ", e)
+        return {"results": "Error", "message": str(e)}
+
+@router.get('/hasProduct')
+async def select(customer_id: int, product_id:int):
+    conn = connect()
+    curs = conn.cursor()    
+    curs.execute(
+        '''
+        SELECT
+            count(wishlist_id) from wishlist
+            where wishlist_customer_id = %s and wishlist_product_id = %s;
+    ''',(customer_id,product_id)
     )
 
     rows = curs.fetchall()
     conn.close()
 
-    results = []
-    for row in rows:
-        image_blob = row[8]
-
-        image_base64 = None
-        if image_blob is not None:
-            image_base64 = base64.b64encode(image_blob).decode("utf-8")
-
-        results.append({
-            "wishlist_id": row[0],
-            "wishlist_customer_id": row[1],
-            "wishlist_product_id": row[2],
-            "wishlist_date": str(row[3]) if row[3] is not None else None,
-            "product_name": row[4],
-            "product_price": row[5],
-            "product_size_id": row[6],
-            "size_name": row[7],
-            "image_base64": image_base64
-        })
-
-    return {"results": results}
-
+    result = [{
+               'count' : row[0], 
+               } for row in rows]
+    return {'results' : result}
 
 @router.post('/insert')
 async def insert(
@@ -77,57 +123,104 @@ async def insert(
         conn = connect()
         curs = conn.cursor()
 
-        sql = """
-        INSERT INTO wishlist
-        (wishlist_customer_id, wishlist_product_id, wishlist_date)
-        VALUES (%s, %s, NOW())
-        """
-        curs.execute(sql, (wishlist_customer_id, wishlist_product_id))
+        curs.execute(
+            """
+            INSERT INTO wishlist (wishlist_customer_id, wishlist_product_id, wishlist_date)
+            VALUES (%s, %s, CURDATE())
+            """,
+            (wishlist_customer_id, wishlist_product_id)
+        )
+
         conn.commit()
         conn.close()
-
         return {"results": "OK"}
 
     except Exception as e:
         print("Error ", e)
-        return {"results": "Error"}
+        return {"results": "Error", "message": str(e)}
 
 
-
-
-
-@router.delete('/delete/{wishlist_id}')
-async def delete(wishlist_id: int):
-    try:
-        conn = connect()
-        curs = conn.cursor()
-
-        curs.execute("DELETE FROM wishlist WHERE wishlist_id = %s", (wishlist_id,))
-        conn.commit()
-        conn.close()
-
-        return {"results": "OK"}
-
-    except Exception as e:
-        print("Error ", e)
-        return {"results": "Error"}
-
-
-@router.delete('/deleteByCustomerProduct/{wishlist_customer_id}/{wishlist_product_id}')
-async def delete_by_customer_product(wishlist_customer_id: int, wishlist_product_id: int):
+@router.delete('/deleteByCustomerProduct/{customer_id}/{product_id}')
+async def deleteByCustomerProduct(customer_id: int, product_id: int):
     try:
         conn = connect()
         curs = conn.cursor()
 
         curs.execute(
-            "DELETE FROM wishlist WHERE wishlist_customer_id = %s AND wishlist_product_id = %s",
-            (wishlist_customer_id, wishlist_product_id)
+            """
+            DELETE FROM wishlist
+            WHERE wishlist_customer_id = %s AND wishlist_product_id = %s
+            """,
+            (customer_id, product_id)
         )
+
         conn.commit()
         conn.close()
-
         return {"results": "OK"}
 
     except Exception as e:
         print("Error ", e)
-        return {"results": "Error"}
+        return {"results": "Error", "message": str(e)}
+
+
+@router.post('/moveToCart')
+async def moveToCart(
+    customer_id: int = Form(...),
+    product_id: int = Form(...),
+    quantity: int = Form(1)
+):
+    conn = connect()
+    curs = conn.cursor()
+
+    try:
+        curs.execute(
+            """
+            SELECT cart_id, cart_product_quantity
+            FROM cart
+            WHERE cart_customer_id = %s AND cart_product_id = %s
+            LIMIT 1
+            """,
+            (customer_id, product_id)
+        )
+        row = curs.fetchone()
+
+        if row:
+            cart_id = row[0]
+            current_qty = int(row[1] or 0)
+            new_qty = current_qty + int(quantity)
+
+            curs.execute(
+                """
+                UPDATE cart
+                SET cart_product_quantity = %s,
+                    cart_date = CURDATE()
+                WHERE cart_id = %s
+                """,
+                (new_qty, cart_id)
+            )
+        else:
+            curs.execute(
+                """
+                INSERT INTO cart (cart_customer_id, cart_product_id, cart_product_quantity, cart_date)
+                VALUES (%s, %s, %s, CURDATE())
+                """,
+                (customer_id, product_id, int(quantity))
+            )
+
+        curs.execute(
+            """
+            DELETE FROM wishlist
+            WHERE wishlist_customer_id = %s AND wishlist_product_id = %s
+            """,
+            (customer_id, product_id)
+        )
+
+        conn.commit()
+        conn.close()
+        return {"results": "OK"}
+
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print("Error ", e)
+        return {"results": "Error", "message": str(e)}

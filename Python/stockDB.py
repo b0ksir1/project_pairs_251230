@@ -85,16 +85,16 @@ async def insert(stock_quantity : int = Form(...), stock_product_id : int = Form
         return {"results" : "Error"}  
     
 @router.post('/update')
-async def update(stock_id : int = Form(...), stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
+async def update(stock_quantity : int = Form(...), stock_product_id : int = Form(...)):
     try:
         conn = connect()
         curs = conn.cursor()
         sql = """
             update stock
-            set stock_quantity = %s, stock_product_id = %s
-            where stock_id = %s
+            set stock_quantity = %s
+            where stock_product_id = %s
             """
-        curs.execute(sql, (stock_quantity, stock_product_id, stock_id))
+        curs.execute(sql, (stock_quantity, stock_product_id))
         conn.commit()
         conn.close()
         return {'results' : "OK"}
