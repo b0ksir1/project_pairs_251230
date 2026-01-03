@@ -247,7 +247,8 @@ async def selectApprove():
         size.size_name,
         brand.brand_name,
         category.category_name,    
-        p.product_price 
+        p.product_price,
+        stock.stock_quantity 
         from product as p
             inner join size
                 on size.size_id = p.product_size_id
@@ -257,6 +258,8 @@ async def selectApprove():
                 on brand.brand_id = p.product_brand_id
             inner join category
                 on category.category_id = p.product_category_id
+            inner join stock
+                on stock.stock_product_id = p.product_id     
     '''
     )
     rows = curs.fetchall()
@@ -270,6 +273,7 @@ async def selectApprove():
                'brand' : row[4],
                'category' : row[5],
                'price' : row[6],
+               'qty' : row[7],
                } for row in rows]
     return {'results' : result}
 
