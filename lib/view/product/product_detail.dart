@@ -1,12 +1,15 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:path/path.dart';
 import 'package:project_pairs_251230/model/product.dart';
 import 'package:project_pairs_251230/model/product_detail_item.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/util/message.dart';
+import 'package:project_pairs_251230/view/chat/customer_chat_screen.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
 
 class ProductDetail extends StatefulWidget {
@@ -17,6 +20,7 @@ class ProductDetail extends StatefulWidget {
 }
 
 class _ProductDetailState extends State<ProductDetail> {
+  // === Property ===
   // GetX: CartController 인스턴스화 및 주입
   late final PageController _pageController;
   // 상태 관리 변수들
@@ -24,12 +28,8 @@ class _ProductDetailState extends State<ProductDetail> {
   int _selectedColorIndex = 0;
   int _selectedSizeIndex = 0;
   bool _isLiked = false; // wish controller
-
   Message message = Message();
-
   ProductDetailItem? _product;
-
-  // List<ProductDetailItem> _productList = [];
   late List<int> _productImages = [];
   List _productSizeId = [];
   List _productSizeList = [];
@@ -37,24 +37,16 @@ class _ProductDetailState extends State<ProductDetail> {
   List _productColorList = [];
   List _productMainImageProductIdList = [];
 
-  // A1: 선택 가능한 사이즈 목록 (220부터 290까지 5단위)
-  // final List<String> _availableSizes = [
-  //   for (int size = 220; size <= 300; size += 5) size.toString(),
-  // ];
-  // A1: 현재 선택된 사이즈
   String? _selectedSize;
 
-  // Property
+  int _qty = 1;
+
   late List<Product> list; // 상품1개정보
 
   int product_id = Get.arguments ?? 1;
   int customer_id = 1;
-  String selectSize = "";
-  String selectColor = "";
 
-  // 더미 데이터: 이미지 리스트 (넘겨받은 imageUrl을 첫 번째 이미지로 사용하도록 변경)
-  // 실제 제품의 여러 이미지를 구현하려면 이 리스트를 DetailScreen의 인자로 받아야 하지만,
-  // 현재는 넘겨받은 imageUrl을 포함하고 기존 더미를 유지합니다.
+  TextEditingController _textEditingController = TextEditingController();
 
   @override
   void initState() {
@@ -153,6 +145,9 @@ class _ProductDetailState extends State<ProductDetail> {
                         const SizedBox(height: 30),
                         _buildSizeSelector(),
 
+                        const SizedBox(height: 30),
+                        _buildQtySelector(context),
+
                         // 5. 메인 액션 버튼들 (장바구니, 구매, 위시)
                         const SizedBox(height: 20),
                         _buildActionButtons(),
@@ -185,6 +180,9 @@ class _ProductDetailState extends State<ProductDetail> {
                           thickness: 1,
                           color: Color(0xFFEEEEEE),
                         ),
+                        _buildChattingButton(),
+
+                        SizedBox(height: 20),
 
                         // // 7. 함께 본 상품
                         // const Text(
@@ -213,7 +211,7 @@ class _ProductDetailState extends State<ProductDetail> {
                 ],
               ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      // bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
@@ -230,8 +228,6 @@ class _ProductDetailState extends State<ProductDetail> {
       var results = dataConvertedData['results'];
       // print(results);
       _product = ProductDetailItem.fromJson(results.first);
-      selectSize = _product!.sizeName;
-      selectColor = _product!.colorName;
 
       getMainImageToColorByName(_product!.productName);
       getProductSize(_product!.productName, _product!.colorId);
@@ -351,8 +347,10 @@ class _ProductDetailState extends State<ProductDetail> {
     }
   }
 
-  Future loadWishList()async{
-    var url = Uri.parse('${GlobalData.url}/wishlist/hasProduct?customer_id=$customer_id&product_id=$product_id');
+  Future loadWishList() async {
+    var url = Uri.parse(
+      '${GlobalData.url}/wishlist/hasProduct?customer_id=$customer_id&product_id=$product_id',
+    );
 
     var response = await http.get(url);
 
@@ -379,7 +377,7 @@ class _ProductDetailState extends State<ProductDetail> {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.black),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => Get.back(),
       ),
       title: Text(
         _product != null ? _product!.productName : '...', // 넘겨받은 title 사용
@@ -509,6 +507,68 @@ class _ProductDetailState extends State<ProductDetail> {
     );
   }
 
+  Widget _buildQtySelector(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // < 버튼
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              if (_qty > 0) {
+                _qty--;
+              }
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(40, 40),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+                topRight: Radius.zero,
+                bottomRight: Radius.zero,
+              ),
+            ),
+          ),
+          child: const Text('-'),
+        ),
+
+        // 숫자 표시
+        Container(
+          alignment: Alignment.center,
+          width: MediaQuery.of(context).size.width * 0.65,
+          height: 40,
+          color: Colors.grey.shade200,
+          child: Text(_qty.toString(), style: const TextStyle(fontSize: 16)),
+        ),
+
+        // > 버튼
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              if (_product!.qty > _qty) {
+                _qty++;
+              }
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(40, 40),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+                topLeft: Radius.zero,
+                bottomLeft: Radius.zero,
+              ),
+            ),
+          ),
+          child: const Text('+'),
+        ),
+      ],
+    );
+  }
+
   // 사이즈 선택 버튼 (A1: 가로 스크롤 선택 버튼)
   Widget _buildSizeSelector() {
     return Column(
@@ -604,60 +664,33 @@ class _ProductDetailState extends State<ProductDetail> {
                 );
                 return;
               }
-              // +++ 상품 DB 연동 핸들러
-              // final variantId = await productHandler.findVariantProductId(
-              //   productName: product!.product_name,
-              //   productColor: product!.product_color,
-              //   productSize: selectedSizeInt,
-              // );
-
-              // if (variantId == null) {
-              //   Get.snackbar(
-              //     "오류",
-              //     "해당 사이즈 상품을 찾을 수 없습니다",
-              //     snackPosition: SnackPosition.TOP,
-              //   );
-              //   return;
-              // }
-
-              // await cartController.addToCart(
-              //   productId: variantId,
-              //   title: product!.product_name,
-              //   price: product!.product_price,
-              //   image: product!.mainImageUrl ?? "",
-              //   size: _selectedSize!,
-              // );
-
-              // +++ 장바구니 연결
-
               try {
+                var url = Uri.parse("${GlobalData.url}/cart/insert");
+                var res = await http.post(
+                  url,
+                  headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                  },
+                  body: {
+                    "cart_customer_id": customer_id.toString(),
+                    "cart_product_id": product_id.toString(),
+                    "cart_product_quantity": _qty.toString(),
+                  },
+                );
 
-      var url = Uri.parse("${GlobalData.url}/cart/insert");
-      var res = await http.post(
-        url,
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: {
-          "cart_customer_id": customer_id.toString(),
-          "cart_product_id": product_id.toString(),
-          "cart_product_quantity": "1",
-        },
-      );
+                if (res.statusCode != 200) {
+                  throw Exception("추가 실패: ${res.statusCode}");
+                }
 
-      if (res.statusCode != 200) {
-        throw Exception("추가 실패: ${res.statusCode}");
-      }
+                var body = json.decode(res.body);
+                if ((body["results"] ?? "") != "OK") {
+                  throw Exception("추가 실패: ${res.body}");
+                }
 
-      var body = json.decode(res.body);
-      if ((body["results"] ?? "") != "OK") {
-        throw Exception("추가 실패: ${res.body}");
-      }
-
-      Get.snackbar("장바구니", "장바구니에 담았습니다");
-    } catch (e) {
-      Get.snackbar("장바구니", "담기 실패: $e");
-    }
+                Get.snackbar("장바구니", "장바구니에 담았습니다");
+              } catch (e) {
+                Get.snackbar("장바구니", "담기 실패: $e");
+              }
               // Get.to(ShoppingCart());
             },
             style: ElevatedButton.styleFrom(
@@ -837,6 +870,53 @@ class _ProductDetailState extends State<ProductDetail> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildChattingButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: () async {
+          final docRef = FirebaseFirestore.instance
+              .collection('chatting')
+              .doc(customer_id.toString());
+          final docSnap = await docRef.get();
+          if (docSnap.exists) {
+            Get.to(CustomerChatScreen());
+          } else {
+            await FirebaseFirestore.instance
+                .collection("chatting")
+                .doc(customer_id.toString())
+                .set({
+                  'customerId': customer_id.toString(),
+                  'startAt': DateTime.now().toString(),
+                  'employeeId': 'empty',
+                  'dialog': FieldValue.arrayUnion([]),
+                })!
+                .then((value) {
+                  Get.to(CustomerChatScreen());
+                });
+          }
+          // Get.to(ShoppingCart());
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          elevation: 0,
+        ),
+        child: const Text(
+          "장바구니",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -1232,24 +1312,24 @@ class _ProductDetailState extends State<ProductDetail> {
   // }
 
   // 하단 네비게이션 바 (MainScreen과 스타일 맞춤)
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: const [
-          _NavIcon(icon: Icons.home_filled, label: "홈"),
-          _NavIcon(icon: Icons.search, label: "탐색"),
-          _NavIcon(icon: Icons.favorite_border, label: "위시리스트"),
-          _NavIcon(icon: Icons.shopping_bag_outlined, label: "장바구니"),
-          _NavIcon(icon: Icons.person_outline, label: "프로필"),
-        ],
-      ),
-    );
-  }
+  // Widget _buildBottomNavBar() {
+  //   return Container(
+  //     decoration: const BoxDecoration(
+  //       border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+  //     ),
+  //     padding: const EdgeInsets.symmetric(vertical: 8),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceAround,
+  //       children: const [
+  //         _NavIcon(icon: Icons.home_filled, label: "홈"),
+  //         _NavIcon(icon: Icons.search, label: "탐색"),
+  //         _NavIcon(icon: Icons.favorite_border, label: "위시리스트"),
+  //         _NavIcon(icon: Icons.shopping_bag_outlined, label: "장바구니"),
+  //         _NavIcon(icon: Icons.person_outline, label: "프로필"),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 class _NavIcon extends StatelessWidget {
