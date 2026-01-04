@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/page_chart.dart';
 import 'package:project_pairs_251230/util/message.dart';
+import 'package:project_pairs_251230/view/category/category_list.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
 import 'package:project_pairs_251230/view/product/main_page_home.dart';
 import 'package:project_pairs_251230/view/search/search_result.dart';
@@ -53,14 +54,18 @@ class _MainPageState extends State<MainPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Design'),
+        centerTitle: true,
+        title:  Image.asset('images/logo.png', scale: 3,),
+        toolbarHeight: 70,
+        backgroundColor: Colors.black,
         actions: [
           TextButton(onPressed: () => Get.to(PageChart()), child: Text('Page')),
           IconButton(
             onPressed: () {
               //
             },
-            icon: Icon(Icons.chat),
+            icon: Icon(Icons.chat_bubble_outline,
+            color: const Color.fromARGB(255, 255, 255, 255),),
           ),
         ],
       ),
@@ -68,7 +73,7 @@ class _MainPageState extends State<MainPage>
         controller: mainTabController,
         children: [
           MainPageHome(),
-          ShoppingCart(),
+          CategoryList(),
           const SizedBox(),     // 검색은 container로만
           ShoppingCart(),
           MyPage(),
@@ -82,17 +87,15 @@ class _MainPageState extends State<MainPage>
           labelColor: const Color.fromARGB(255, 0, 0, 0),
           labelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
           indicatorColor: const Color.fromARGB(255, 0, 0, 0),
-          indicatorSize: TabBarIndicatorSize.tab,
+          indicatorSize: TabBarIndicatorSize.label,
           indicatorWeight: 2,
 
           onTap: (value) async{
             // 검색 탭이면 페이지 이동 대신 container
             if (value == 2) {
               mainTabController.animateTo(_prevIndex);
-
               // search바 띄우기
               await _openSearchSheet();
-
               return;
             }
           },
