@@ -109,6 +109,18 @@ class _AdminFindPasswordState
                   height: 48,
                   child: TextButton(
                     onPressed: () {
+                      if (adminIdController
+                              .text
+                              .isEmpty ||
+                          adminNameController
+                              .text
+                              .isEmpty) {
+                        Get.snackbar(
+                          '입력 오류',
+                          '이메일과 이름을 모두 입력해주세요.',
+                        );
+                        return;
+                      }
                       _findInfoDialog();
                     },
                     style: TextButton.styleFrom(
@@ -133,13 +145,13 @@ class _AdminFindPasswordState
   } // build
 
   // ============== functions =================
-  _findInfoDialog() {
+  void _findInfoDialog() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text(
-            '메일 전송이 \n완료 되었습니다.',
+            '입력하신 이메일로\n비밀번호를 전송했습니다.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18,

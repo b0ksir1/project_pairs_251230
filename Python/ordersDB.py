@@ -77,6 +77,39 @@ async def month_sales():
         return {"month_sales": row["month_sales"]}
 # 매출 (e)
 
+
+# 주문 내역 (s)
+
+@router.get('/select/summary')
+async def select_summary():
+        conn = connect()
+        curs = conn.cursor()
+        curs.execute(
+            '''
+            SELECT
+            o.orders_id,
+            p.product_name,
+            o.orders_quantity,
+            o.orders_totalprice
+            FROM orders o
+            INNER JOIN product p
+            ON p.product_id = o.orders_product_id
+            ORDER BY o.orders_date DESC;
+            '''
+        )
+        rows = curs.fetchall()
+        conn.close()
+        
+        result = [{'orders_id': row[0],
+        'product_name': row[1],
+        'orders_quantity': row[2],
+        'orders_totalprice': row[3],
+    } for row in rows]
+        return {'results' : result}
+   
+
+# 주문 내역 (e)
+
 @router.get('/select/{customer_id}')
 async def select(customer_id:int):
     try:
