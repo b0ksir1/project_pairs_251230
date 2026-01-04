@@ -750,7 +750,7 @@ class _ProductDetailState extends State<ProductDetail> {
                       PaymentOptions(),
                       arguments: {
                         "customerId" : customer_id,
-                        "items": [item.toJson()]
+                        "items": [item.toJson()]    // List<Map<String, dynamic>>
                       }
                     )!.then((value) => getProductData(product_id));
                   },
