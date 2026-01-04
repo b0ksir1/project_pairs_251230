@@ -18,7 +18,9 @@ class _CategoryListState extends State<CategoryList> {
   final TextEditingController searchController = TextEditingController();
   List<Category> categoryList = [];
   int categoryListIndex = 0;
-  List<ProductByCategory> productList = [];
+  
+  List<Map<String, dynamic>> allProducts = []; // 전체 데이터를 원본으로 보관
+  List<Map<String, dynamic>> filteredProducts = []; // 화면에 보여줄 필터링된 데이터
 
   @override
   void initState() {
@@ -34,36 +36,34 @@ class _CategoryListState extends State<CategoryList> {
       var data = json.decode(utf8.decode(response.bodyBytes));
       List result = data["results"];
       setState(() {
-        categoryList = result.map((e) => Category(category_name: e['category_name'])).toList();
+        categoryList = [Category(category_name: '전체')];
+        categoryList.addAll(result.map((e) => Category.fromJson(e)).toList());
       });
     }
   }
 
   Future<void> getProductData() async {
-    var url = Uri.parse("${GlobalData.url}/product/products");
+    var url = Uri.parse("${GlobalData.url}/product/selectAll");
     var response = await http.get(url);
     if (response.statusCode == 200) {
       var data = json.decode(utf8.decode(response.bodyBytes));
-      List results = data["results"] ?? [];
-      productList.clear();
-
-      for (var brand in results) {
-        String bName = brand['brand_name'] ?? 'Brand';
-        int? bId = brand['brand_id'];
-        List pItems = brand['products'] ?? [];
-
-        for (var p in pItems) {
-          productList.add(ProductByCategory(
-            brand_id: bId,
-            brand_name: bName,
-            product_id: p['product_id'],
-            product_name: p['product_name'] ?? '',
-            product_price: p['product_price'] ?? 0,
-          ));
-        }
-      }
-      setState(() {});
+      setState(() {
+        allProducts = List<Map<String, dynamic>>.from(data["results"] ?? []);
+        filteredProducts = allProducts;
+      });
     }
+  }
+
+  void _filterByCategory(int index) {
+    setState(() {
+      categoryListIndex = index;
+      if (index == 0) {
+        filteredProducts = allProducts;
+      } else {
+        String selectedName = categoryList[index].category_name;
+        filteredProducts = allProducts.where((p) => p['product_category'] == selectedName).toList();
+      }
+    });
   }
 
   @override
@@ -77,7 +77,7 @@ class _CategoryListState extends State<CategoryList> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
           onPressed: () => Get.back(),
         ),
-        title: const Text('카테고리 탐색', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text('카테고리', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: Column(
@@ -86,8 +86,8 @@ class _CategoryListState extends State<CategoryList> {
           _buildTabs(),
           const SizedBox(height: 10),
           Expanded(
-            child: productList.isEmpty
-                ? const Center(child: CircularProgressIndicator(color: Colors.black))
+            child: filteredProducts.isEmpty
+                ? const Center(child: Text('해당 상품이 없습니다.', style: TextStyle(color: Colors.grey)))
                 : GridView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -96,7 +96,7 @@ class _CategoryListState extends State<CategoryList> {
                       mainAxisSpacing: 24,
                       childAspectRatio: 0.7,
                     ),
-                    itemCount: productList.length,
+                    itemCount: filteredProducts.length,
                     itemBuilder: (context, index) => _buildProductItem(index),
                   ),
           )
@@ -106,9 +106,9 @@ class _CategoryListState extends State<CategoryList> {
   }
 
   Widget _buildProductItem(int index) {
-    final p = productList[index];
+    final p = filteredProducts[index];
     return GestureDetector(
-      onTap: () => Get.to(() => const ProductDetail(), arguments: p.product_id),
+      onTap: () => Get.to(() => const ProductDetail(), arguments: p['product_id']),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -121,7 +121,7 @@ class _CategoryListState extends State<CategoryList> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30),
                 child: Image.network(
-                  '${GlobalData.url}/images/view/${p.product_id}',
+                  '${GlobalData.url}/images/view/${p['product_id']}',
                   fit: BoxFit.cover,
                   errorBuilder: (c, e, s) => const Icon(Icons.image_not_supported, color: Colors.grey),
                 ),
@@ -129,14 +129,11 @@ class _CategoryListState extends State<CategoryList> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(p.brand_name, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text(p['product_brand'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(p.product_name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Text(
-            '₩${p.product_price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-          ),
+          Text(p['product_name'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text('₩${p['product_price']}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
         ],
       ),
     );
@@ -146,13 +143,12 @@ class _CategoryListState extends State<CategoryList> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Container(
-        height: 52,
+        height: 50,
         decoration: BoxDecoration(color: const Color(0xFFF8F8F8), borderRadius: BorderRadius.circular(30)),
         child: TextField(
           controller: searchController,
           decoration: const InputDecoration(
-            hintText: '원하시는 카테고리나 상품 검색',
-            hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+            hintText: '카테고리 또는 상품 검색',
             prefixIcon: Icon(Icons.search, color: Colors.black, size: 20),
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 15),
@@ -164,16 +160,16 @@ class _CategoryListState extends State<CategoryList> {
 
   Widget _buildTabs() {
     return SizedBox(
-      height: 48,
+      height: 45,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         scrollDirection: Axis.horizontal,
         itemCount: categoryList.length,
-        separatorBuilder: (c, i) => const SizedBox(width: 10),
+        separatorBuilder: (c, i) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final sel = index == categoryListIndex;
           return GestureDetector(
-            onTap: () => setState(() => categoryListIndex = index),
+            onTap: () => _filterByCategory(index),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               decoration: BoxDecoration(
@@ -184,7 +180,7 @@ class _CategoryListState extends State<CategoryList> {
               alignment: Alignment.center,
               child: Text(
                 categoryList[index].category_name,
-                style: TextStyle(color: sel ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
+                style: TextStyle(color: sel ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ),
           );

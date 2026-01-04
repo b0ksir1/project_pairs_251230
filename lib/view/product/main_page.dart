@@ -60,7 +60,7 @@ class _MainPageState extends State<MainPage>
         toolbarHeight: 70,
         backgroundColor: Colors.black,
         actions: [
-          TextButton(onPressed: () => Get.to(PageChart()), child: Text('Page')),
+          TextButton(onPressed: () => Get.to(PageChart()), child: Text('.')),
           IconButton(
             onPressed: () => Get.to(CustomerChatScreen()),
             icon: Icon(Icons.chat_bubble_outline,
