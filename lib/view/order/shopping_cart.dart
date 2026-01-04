@@ -336,9 +336,10 @@ class _ShoppingCartState extends State<ShoppingCart> {
                             () => PaymentOptions(),
                             arguments: {
                               "customerId": customerId,
+                              "cartToPayment": true,
                               "items": items        // items : [{...} , {...}]
                             },
-                          );
+                          )!.then((value) => fetchCartData());
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
