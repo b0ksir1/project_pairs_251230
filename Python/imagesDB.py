@@ -49,7 +49,7 @@ async def view(images_id:int):
         print("Error ", e)
         return {"results" : "Error"}    
     
-@router.get('/viewOne/{images_id}')
+@router.get('/viewOne/{images_product_id}')
 async def viewOne(images_product_id:int):
     try:
         conn = connect()
