@@ -28,7 +28,7 @@ async def select():
         approve_employee_id, 
         approve_date, 
         approve_senior_assign_date,
-        approve_director_assign_date
+        approve_director_assign_date,
         from approve
          
     '''
@@ -52,22 +52,21 @@ async def select(employee_id:int):
     curs = conn.cursor()    
     curs.execute(
         '''
-        select 
-        approve_id, 
-        approve_product_id, 
+        select a.approve_id, 
+        a.approve_product_id, 
         p.product_name, 
-        approve_quantity,
-        approve_employee_id, 
-        approve_senior_id,
-        approve_director_id,
+        a.approve_quantity,
+        a.approve_employee_id, 
+        a.approve_senior_id,
+        a.approve_director_id,
         e.employee_name as approve_employee_name,
         s.employee_name as approve_senior_name,
         d.employee_name as approve_director_name,
-        approve_date, 
-        approve_senior_assign_date,
-        approve_director_assign_date,
-        approve_status
+        a.approve_status,
+        u.update_date
         from approve as a
+            inner join approve_update as u
+                on u.approve_id = a.approve_id and u.status = 0
             inner join product as p
                 on p.product_id = approve_product_id
             left join employee as e
@@ -92,10 +91,8 @@ async def select(employee_id:int):
                'approve_employee_name' : row[7],
                'approve_senior_name' : row[8],
                'approve_director_name' : row[9],
-               'approve_date' : row[10],
-               'approve_senior_assign_date' : row[11],
-               'approve_director_assign_date' : row[12],
-               'approve_status' : row[13],
+               'approve_status' : row[10],
+               'date' : row[11],
                } for row in rows]
     return {'results' : result}
 
@@ -116,9 +113,8 @@ async def insert(approve_product_id:int = Form(...),
         approve_senior_id,
         approve_director_id,
         approve_quantity,
-        approve_date,
         approve_status
-                ) values (%s, %s, %s, %s, %s, now(),0 )
+                ) values (%s, %s, %s, %s, %s,0 )
         """
         curs.execute(sql, (
             approve_employee_id, 
@@ -127,14 +123,15 @@ async def insert(approve_product_id:int = Form(...),
             approve_director_id, 
             approve_quantity
             ))
+        
+        approve_id = curs.lastrowid
         conn.commit()
         conn.close()
-        return {"results" : "OK"}
+        return {"results" : "OK","approve_id":approve_id}
 
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"}  
-    
 @router.post('/update')
 async def update(approve_employee_id :int = Form(...), 
                  approve_product_id:int = Form(...), 
@@ -171,6 +168,98 @@ async def update(approve_employee_id :int = Form(...),
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"} 
+    
+@router.post('/updateStatus')
+async def updateStatus(approve_id :int = Form(...), status:int=Form(...)):
+    try:
+        conn = connect()
+        curs = conn.cursor()
+        sql = '''
+        update approve set 
+        approve_status = %s
+        where approve_id = %s
+        '''
+        curs.execute(sql, (status, approve_id,))
+        conn.commit()
+        conn.close()
+        return {"results" : "OK"}
+
+    except Exception as e:
+        print("Error ", e)
+        return {"results" : "Error"} 
+# @router.post('/confirmDirector')
+# async def confirmDirector(approve_id :int = Form(...)):
+#     try:
+#         conn = connect()
+#         curs = conn.cursor()
+#         sql = '''
+#         update approve set 
+#         approve_status = 2,
+#         approve_director_assign_date = now()
+#         where approve_id = %s
+#         '''
+#         curs.execute(sql, ( approve_id,))
+#         conn.commit()
+#         conn.close()
+#         return {"results" : "OK"}
+
+#     except Exception as e:
+#         print("Error ", e)
+#         return {"results" : "Error"} 
+# @router.post('/rejectSenior')
+# async def rejectSenior(approve_id :int = Form(...)):
+#     try:
+#         conn = connect()
+#         curs = conn.cursor()
+#         sql = '''
+#         update approve set 
+#         approve_status = 4
+#         where approve_id = %s
+#         '''
+#         curs.execute(sql, ( approve_id,))
+#         conn.commit()
+#         conn.close()
+#         return {"results" : "OK"}
+
+#     except Exception as e:
+#         print("Error ", e)
+#         return {"results" : "Error"}  
+# @router.post('/rejectDirector')
+# async def rejectDirector(approve_id :int = Form(...)):
+#     try:
+#         conn = connect()
+#         curs = conn.cursor()
+#         sql = '''
+#         update approve set 
+#         approve_status = 4
+#         where approve_id = %s
+#         '''
+#         curs.execute(sql, ( approve_id,))
+#         conn.commit()
+#         conn.close()
+#         return {"results" : "OK"}
+
+#     except Exception as e:
+#         print("Error ", e)
+#         return {"results" : "Error"}    
+# @router.post('/cancel')
+# async def cancel(approve_id :int = Form(...)):
+#     try:
+#         conn = connect()
+#         curs = conn.cursor()
+#         sql = '''
+#         update approve set 
+#         approve_status = 3
+#         where approve_id = %s
+#         '''
+#         curs.execute(sql, ( approve_id,))
+#         conn.commit()
+#         conn.close()
+#         return {"results" : "OK"}
+
+#     except Exception as e:
+#         print("Error ", e)
+#         return {"results" : "Error"}       
     
 # @router.delete('/delete/{approve_id}')
 # async def delete(approve_id:int):
