@@ -21,6 +21,8 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
   late List<OrdersDelivery> _ordersList;
   late List<String> _storeList;
 
+   final List productImage = []; // 상품 이미지 한개
+
   // final String _ordersUrl = "${GlobalData.url}/orders";
   final String _storeUrl = "${GlobalData.url}/store/select";
   final TextEditingController _searchController = TextEditingController();
@@ -49,16 +51,18 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '대리점 발송',
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
-                    ),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                        child: Icon(Icons.view_in_ar_rounded, size: 30),
+                      ),
+                      Text('대리점 발송', style: _adminTitle()),
+                    ],
                   ),
                   SizedBox(height: 8),
                   _buildSearch(),
@@ -84,42 +88,49 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
   } // build
   // === Widget ===
 
+  TextStyle _adminTitle() {
+    return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  }
+
   Widget _buildDropDownButton() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: Container(
         height: 44,
-        width: MediaQuery.widthOf(context) * 0.2,
+        width: MediaQuery.widthOf(context) * 0.15,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: Colors.grey[200],
         ),
         child: Center(
-          child: DropdownButton<String>(
-            isExpanded: true,
-            dropdownColor: Theme.of(context).colorScheme.onPrimary,
-            iconEnabledColor: Theme.of(context).colorScheme.error,
-            iconDisabledColor: Theme.of(context).colorScheme.onError,
-            value: _selectedStoreValue,
-            icon: const Icon(Icons.keyboard_arrow_down),
-            items: _storeList.map((list) {
-              return DropdownMenuItem<String>(
-                value: list,
-                child: Text(
-                  list,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+          child: SizedBox(
+            width: MediaQuery.widthOf(context) * 0.1,
+            child: DropdownButton<String>(
+              isExpanded: true,
+              dropdownColor: Theme.of(context).colorScheme.onPrimary,
+              iconEnabledColor: Theme.of(context).colorScheme.error,
+              iconDisabledColor: Theme.of(context).colorScheme.onError,
+              value: _selectedStoreValue,
+              icon: const Icon(Icons.keyboard_arrow_down),
+              items: _storeList.map((list) {
+                return DropdownMenuItem<String>(
+                  value: list,
+                  child: Text(
+                    list,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value == null) return;
-              _selectedStoreValue = value;
-              _selectedStoreIndex = _storeList.indexOf(_selectedStoreValue);
-              getOrderData(_selectedStoreIndex + 1);
-              setState(() {});
-            },
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                _selectedStoreValue = value;
+                _selectedStoreIndex = _storeList.indexOf(_selectedStoreValue);
+                getOrderData(_selectedStoreIndex + 1);
+                setState(() {});
+              },
+            ),
           ),
         ),
       ),
@@ -157,7 +168,7 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
           Row(
             children: [
               Image.network(
-                '${GlobalData.url}/images/view/${_ordersList[index].ordersId}',
+                '${GlobalData.url}/images/viewOne/${_ordersList[index].productId}',
                 width: 200,
                 height: 200,
               ),
@@ -306,6 +317,22 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
       print("error : ${response.statusCode}");
     }
   } // getStoreData
+
+  Future<void> getImagedata(List product) async {
+    // image 가져오기
+
+    int proid = 0;
+    for (int i = 0; i < product.length; i++) {
+      proid = product[i]['product_id'];
+      var urlImage = Uri.parse("${GlobalData.url}/images/select/$proid");
+      var response = await http.get(urlImage);
+      var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+      List results = dataConvertedJSON['results'];
+      // print('proid : $proid / $results / ${results[0]}');
+      productImage.add(results.first['images_id']);
+    }
+    setState(() {});
+  }
 
   void showDialog(int index) {
     Get.defaultDialog(
