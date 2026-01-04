@@ -2,7 +2,7 @@ class Orders {
   int? ordersId;
   int? ordersCustomerId;
   int? ordersStatus;
-  int ordersNumber;
+  String ordersNumber;
   int ordersQty;
   int productPrice;
   String ordersPayment;

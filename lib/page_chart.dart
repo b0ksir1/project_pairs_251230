@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_confirm.dart';
+import 'package:project_pairs_251230/view/admin/admin_approval_list.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_request.dart';
 import 'package:project_pairs_251230/view/admin/admin_chat.dart';
 import 'package:project_pairs_251230/view/admin/admin_chat_list.dart';
@@ -202,13 +203,17 @@ class _PageChartState extends State<PageChart> {
                         //   child: Text('채팅 답변'),
                         // ),
                         TextButton(onPressed: () {}, child: Text('게시판')),
+                        // TextButton(
+                        //   onPressed: () => Get.to(AdminApprovalRequest()),
+                        //   child: Text('품의 요청 페이지'),
+                        // ),
+                        // TextButton(
+                        //   onPressed: () => Get.to(AdminApprovalConfirm()),
+                        //   child: Text('품의 확인 페이지'),
+                        // ),
                         TextButton(
-                          onPressed: () => Get.to(AdminApprovalRequest()),
-                          child: Text('품의 요청 페이지'),
-                        ),
-                        TextButton(
-                          onPressed: () => Get.to(AdminApprovalConfirm()),
-                          child: Text('품의 확인 페이지'),
+                          onPressed: () => Get.to(AdminApprovalList()),
+                          child: Text('품의 리스트'),
                         ),
                       ],
                     ),
