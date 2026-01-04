@@ -128,7 +128,7 @@ async def select(customer_id:int):
         curs = conn.cursor()    
         curs.execute(
             '''
-            select o.orders_id, o.orders_quantity, o.orders_number, o.orders_payment, o.orders_date, o.orders_status, s.store_name, p.product_name, p.product_price, size.size_name, brand.brand_name, category.category_name, color.color_name
+            select o.orders_id,  o.orders_quantity, o.orders_product_id, o.orders_number, o.orders_payment, o.orders_date, o.orders_status, s.store_name, p.product_name, p.product_price, size.size_name, brand.brand_name, category.category_name, color.color_name
             from orders as o
                 inner join product as p
                     on p.product_id = o.orders_product_id
@@ -143,23 +143,24 @@ async def select(customer_id:int):
                  inner join color
 					on color.color_id = p.product_color_id   
             where o.orders_customer_id = %s
-            ''',(customer_id)
+            ''',(customer_id,)
         )
         rows = curs.fetchall()
 
         result = [{'orders_id' : row[0], 
-                'orders_quantity' : row[1], 
-                'orders_number' : row[2], 
-                'orders_payment' : row[3], 
-                'orders_date' : row[4], 
-                'orders_status' : row[5], 
-                'store_name' : row[6], 
-                'product_name' : row[7], 
-                'product_price' : row[8],
-                'size_name' : row[9],
-                'brand_name' : row[10],
-                'category_name' : row[11],
-                'color_name' : row[12],
+                'orders_quantity' : row[1],
+                'orders_product_id' : row[2],
+                'orders_number' : row[3], 
+                'orders_payment' : row[4], 
+                'orders_date' : row[5], 
+                'orders_status' : row[6], 
+                'store_name' : row[7], 
+                'product_name' : row[8], 
+                'product_price' : row[9],
+                'size_name' : row[10],
+                'brand_name' : row[11],
+                'category_name' : row[12],
+                'color_name' : row[13],
                 } for row in rows]
         return {'results' : result}
     finally:
