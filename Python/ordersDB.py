@@ -170,6 +170,28 @@ async def select(customer_id:int):
         return {'results' : result}
     finally:
         conn.close()
+# OrderDetail에서 orders_id만으로 필요한 값을 다시 받아올 수 있게 하는 API
+@router.get('/selectOne/{orders_id}')
+async def select_one(orders_id: int):
+    conn = connect()
+    try:
+        curs = conn.cursor(pymysql.cursors.DictCursor)
+        sql = """
+            SELECT
+                orders_id,
+                orders_customer_id,
+                orders_store_id
+            FROM orders
+            WHERE orders_id = %s
+        """
+        curs.execute(sql, (orders_id,))
+        row = curs.fetchone()   # 없으면 None
+        return {"results": row}
+    finally:
+        conn.close()
+
+
+        
 
 @router.get('/selectByStatus/{orders_status}')
 async def select(orders_status:int):

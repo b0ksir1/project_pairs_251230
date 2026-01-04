@@ -7,6 +7,7 @@ class Orders {
   int ordersQty;
   int productPrice;
   String ordersPayment;
+  int? ordersStoreId;
   String ordersDate;
   String productName;
   String storeName;
@@ -20,6 +21,7 @@ class Orders {
     this.ordersCustomerId,
     this.ordersStatus,
     this.ordersProductId,
+    this.ordersStoreId,
     required this.ordersNumber,
     required this.ordersQty,
     required this.productPrice,
