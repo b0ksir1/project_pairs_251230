@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:project_pairs_251230/model/category.dart';
+import 'package:project_pairs_251230/model/product_by_category.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:http/http.dart' as http;
 
@@ -17,6 +19,7 @@ class _CategoryListState extends State<CategoryList> {
   final TextEditingController searchController = TextEditingController();
   List<Category> categoryList = [];
   int categoryListIndex = 0;
+  List<ProductByCategory> productList = [];
 
   // 카테고리 조회
   Future<void> getcategoryData() async{
@@ -31,6 +34,32 @@ class _CategoryListState extends State<CategoryList> {
       );
       categoryList.add(category);
     }
+
+    setState(() {});
+  }
+
+  // 제품 브랜드 별 조회
+  Future<void> getProductData() async{
+    var url = Uri.parse("${GlobalData.url}/product/products");
+    var response = await http.get(url);
+    productList.clear();
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON["results"];
+    for(var item in result){
+      print(item);
+      var brand = item['products'];
+      print(brand);
+      for(var p in brand)
+      {
+        ProductByCategory productByCategory = ProductByCategory(
+          brand_name: p['brand_name'],
+          product_id: p['product_id'],
+          product_name: p['product_name'],
+          product_price: p['product_price']
+        );
+      productList.add(productByCategory);
+      }
+    }
     setState(() {});
   }
 
@@ -38,6 +67,7 @@ class _CategoryListState extends State<CategoryList> {
   void initState() {
     super.initState();
     getcategoryData();
+    getProductData();
   }
 
   @override
@@ -59,6 +89,29 @@ class _CategoryListState extends State<CategoryList> {
         children: [
           _buildSearchBar(),
           _buildTabs(),
+          SizedBox(
+            height: 300,
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1,
+              ),
+              itemCount: productList.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  child: Column(
+                    children: [
+                      Text(productList[index].brand_name),
+                      Text(productList[index].product_name),
+                      Text('${productList[index].product_price}'),
+                    ],
+                  ),
+                );
+              },
+            ),
+          )
         ],
       ),
     );
