@@ -41,7 +41,7 @@ class _ProfileEditState extends State<ProfileEdit> {
     final newPassword = _newPasswordController.text;
     
     // 비밀번호 유효성 검사 (테스트를 위해)
-    if (newPassword.isNotEmpty && newPassword != _confirmPasswordController.text) {
+    if (newPassword.isNotEmpty && newPassword != _confirmPasswordController.text.trim()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('새 비밀번호가 일치하지 않습니다.')),
       );
@@ -95,14 +95,19 @@ class _ProfileEditState extends State<ProfileEdit> {
             obscureText: isPassword,
             keyboardType: label == '전화번호' && !readOnly ? TextInputType.phone : TextInputType.text,
             style: TextStyle(color: readOnly ? Colors.grey[700] : Colors.black),
+            textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               hintText: hintText,
               contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 0),
               border: InputBorder.none,
               // 이메일 필드에만 잠금 아이콘 표시
-              suffixIcon: label == '이메일' && readOnly 
-                  ? const Icon(Icons.lock_outline, color: Colors.grey) 
-                  : null,
+              suffixIcon: Padding(
+                // 텍스트 가운데 정렬을 위해 suffixIcon padding 조절
+                padding: const EdgeInsets.only(right: 10),
+                child: label == '이메일' && readOnly 
+                    ? const Icon(Icons.lock_outline, color: Colors.grey) 
+                    : null,
+              ),
             ),
           ),
         ),
@@ -114,6 +119,7 @@ class _ProfileEditState extends State<ProfileEdit> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -129,8 +135,6 @@ class _ProfileEditState extends State<ProfileEdit> {
           ],
         ),
       ),
-      backgroundColor: Colors.white,
-      
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -195,7 +199,6 @@ class _ProfileEditState extends State<ProfileEdit> {
                   ),
                 ),
                 const SizedBox(width: 10),
-
                 // 정보 저장 버튼
                 Expanded(
                   child: ElevatedButton(
