@@ -316,18 +316,27 @@ class _ShoppingCartState extends State<ShoppingCart> {
                   onPressed: cartItems.isEmpty
                       ? null
                       : () {
-                          if (customerAddress.trim().isEmpty) {
-                            Get.snackbar("경고", "고객 주소가 없습니다.");
-                            return;
-                          }
-
+                        final items = cartItems.map((e) {
+                          final productId = int.tryParse(e["cart_product_id"].toString());
+                          final name = e["product_name"].toString();
+                          final size = int.tryParse(e["size_name"].toString());
+                          final price = int.tryParse(e["product_price"].toString());
+                          final imageId = int.tryParse(e["images_id"].toString());
+                          final qty = int.tryParse(e["cart_product_quantity"].toString());
+                          return {
+                            "productId" : productId,
+                            "name" : name,
+                            "size" : size,
+                            "price" : price,
+                            "imageId" : imageId,
+                            "qty" : qty,
+                          };
+                        }).toList();
                           Get.to(
                             () => PaymentOptions(),
                             arguments: {
                               "customerId": customerId,
-                              "customerAddress": customerAddress,
-                              "totalPrice": totalPrice,
-                              "cartItems": cartItems,
+                              "items": items
                             },
                           );
                         },
