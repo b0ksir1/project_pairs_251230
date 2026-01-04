@@ -56,8 +56,6 @@ class _SignUpState extends State<SignUp> {
     showPassword = true;
     showConfirmPassword = true;
     emailChecked = false;
-
-    // getcustomerData(); // customerDB 연결
   }
 
   // 회원 조회
@@ -108,7 +106,8 @@ class _SignUpState extends State<SignUp> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(),
+        backgroundColor: Colors.white,
+        appBar: AppBar(backgroundColor: Colors.white,),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -503,24 +502,25 @@ class _SignUpState extends State<SignUp> {
   void checkEmailDuplicate() async{
     String email = emailController.text.trim();
 
-    // if(!emailRegex.hasMatch(email)){
-    //   // 중복 확인 -> 잘못된 이메일
-    //   return message.errorSnackBar('Error', '올바른 이메일을 입력하세요.');
-    // }
-
+    if(!emailRegex.hasMatch(email)){
+      // 중복 확인 -> 잘못된 이메일
+      return message.errorSnackBar('Error', '올바른 이메일을 입력하세요.');
+    }
+    
     // 서버에서 가져온 리스트를 사용하여 중복 확인
-    bool isDuplicate = customerList.any((customer) => customer.customer_email == email);
+    await getcustomerData(); // 고객 정보 받아올 때까지 대기
+    bool isDuplicate = customerList.any((customer) => customer.customer_email.trim() == email);
 
     if(!isDuplicate){
       // 중복 확인 -> 사용 가능
       emailChecked = true;
       message.successSnackBar('Success', '$email\n사용 가능한 이메일입니다.');
-      setState(() {}); // 버튼 활성화 상태 갱신
     }else{
       // 중복 확인 -> 사용 불가
       emailChecked = false;
       message.errorSnackBar('Error', '$email\n이미 사용 중인 이메일입니다.');
     }
+    setState(() {});
   }
 
 } // class

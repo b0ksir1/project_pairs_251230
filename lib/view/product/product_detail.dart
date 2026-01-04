@@ -14,7 +14,7 @@ import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/chat/customer_chat_screen.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
 import 'package:project_pairs_251230/view/payment/payment_options.dart';
-
+import 'package:intl/intl.dart';
 class ProductDetail extends StatefulWidget {
   const ProductDetail({super.key});
 
@@ -25,6 +25,10 @@ class ProductDetail extends StatefulWidget {
 class _ProductDetailState extends State<ProductDetail> {
   // === Property ===
   // GetX: CartController 인스턴스화 및 주입
+  final formatter = NumberFormat.currency(
+  locale: 'ko_KR',
+  symbol: '₩',
+);
   late final PageController _pageController;
   // 상태 관리 변수들
   int _currentImageIndex = 0;
@@ -58,6 +62,8 @@ class _ProductDetailState extends State<ProductDetail> {
     // 넘겨받은 imageUrl을 첫 번째 이미지로 설정 (다른 색상 더미는 유지)
 
     // +++ 상품 DB 연결
+
+    // print('product_id : $product_id');
     getProductData(product_id);
     getProductImages(product_id);
     loadWishList();
@@ -135,7 +141,7 @@ class _ProductDetailState extends State<ProductDetail> {
                         // ),
                         const SizedBox(height: 16),
                         Text(
-                          '₩${_product!.price.toString()}', //widget.price, // 넘겨받은 price 사용
+                          '${formatter.format(_product!.price)}', //widget.price, // 넘겨받은 price 사용
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
@@ -228,7 +234,7 @@ class _ProductDetailState extends State<ProductDetail> {
       var results = dataConvertedData['results'];
       // print(results);
       _product = ProductDetailItem.fromJson(results.first);
-
+      
       getMainImageToColorByName(_product!.productName);
       getProductSize(_product!.productName, _product!.colorId);
       getProductColor(_product!.productName);
@@ -278,6 +284,9 @@ class _ProductDetailState extends State<ProductDetail> {
         _productColorId.add(item['color_id']);
         _productColorList.add(item['color_name']);
       }
+
+      _selectedColorIndex = _productColorId.indexOf(_product!.colorId);
+
       setState(() {});
     } else {
       print("error : ${response.statusCode}");
@@ -301,7 +310,9 @@ class _ProductDetailState extends State<ProductDetail> {
         _productSizeId.add(item['size_id']);
         _productSizeList.add(item['size_name']);
       }
-      _selectedSize = _productSizeList.first;
+      // _selectedSize = _productSizeList.first;
+      _selectedSize = _product!.sizeName;
+      _selectedSizeIndex = _productSizeList.indexOf(_product!.sizeName);
       setState(() {});
     } else {
       print("error : ${response.statusCode}");
@@ -337,10 +348,10 @@ class _ProductDetailState extends State<ProductDetail> {
     if (response.statusCode == 200) {
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       var results = dataConvertedData['results'];
-      // print(results);
       _product = ProductDetailItem.fromJson(results.first);
       getProductImages(product_id);
       loadWishList();
+
       setState(() {});
     } else {
       print("error : ${response.statusCode}");
@@ -354,14 +365,13 @@ class _ProductDetailState extends State<ProductDetail> {
 
     var response = await http.get(url);
 
-    print('getProductData : ${response.body} / $url');
+    // print('getProductData : ${response.body} / $url');
 
     if (response.statusCode == 200) {
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       var results = dataConvertedData['results'];
 
       _isLiked = results.first['count'] == 0 ? false : true;
-      print(results);
       getProductImages(product_id);
       setState(() {});
     } else {
@@ -924,7 +934,7 @@ class _ProductDetailState extends State<ProductDetail> {
           elevation: 0,
         ),
         child: const Text(
-          "장바구니",
+          "문의하기",
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/util/side_menu.dart';
+import 'package:project_pairs_251230/view/admin/admin_approval_list.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_request.dart';
 import 'package:project_pairs_251230/view/admin/admin_board.dart';
 import 'package:project_pairs_251230/view/admin/admin_dashboard.dart';
@@ -97,14 +98,14 @@ class AdminSideBar extends StatelessWidget {
               Get.to(AdminPurchaseOrder());
             },
           ),
-          AdminSideItem(
-            icon: Icons.call_received,
-            text: '수주 페이지',
-            selected: selectedMenu == SideMenu.obtain,
-            onTap: () {
-              Get.to(AdminSalesOrder());
-            },
-          ),
+          // AdminSideItem(
+          //   icon: Icons.call_received,
+          //   text: '수주 페이지',
+          //   selected: selectedMenu == SideMenu.obtain,
+          //   onTap: () {
+          //     Get.to(AdminSalesOrder());
+          //   },
+          // ),
           AdminSideItem(
             icon: Icons.border_all_rounded,
             text: '게시판',
@@ -118,7 +119,7 @@ class AdminSideBar extends StatelessWidget {
             text: '품의',
             selected: selectedMenu == SideMenu.approval,
             onTap: () {
-              Get.to(AdminStockList());
+              Get.to(AdminApprovalList());
             },
           ),
           AdminSideItem(

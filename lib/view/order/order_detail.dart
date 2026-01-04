@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -19,84 +20,109 @@ class _OrderDetailState extends State<OrderDetail> {
 
   late final Map<String, dynamic> args;
 
-  // 이미지 불러오기 위해 필요 (orders_product_id)
+  int? _ordersId;
   int? _productId;
   Future<int?>? _imageIdFuture;
+
+  Timer? _returnTimer;
+
+  int? _customerId;
+  int? _storeId;
+  bool _metaLoading = false;
+
+  // null = 반품 없음
+  // 0 = 반품 대기
+  // 1 = 반품 완료
+  int? _returnStatus;
+  bool _returnLoading = false;
 
   @override
   void initState() {
     super.initState();
 
-    //  Get.arguments가 null일 수도 있으니 안전하게 빈 Map 처리
     args = ((Get.arguments ?? {}) as Map).cast<String, dynamic>();
 
-    //  productId 키가 여러 방식으로 올 수 있어서(팀원마다 이름 다를 수 있음) 다 받아줌
+    _ordersId = _toInt(args['orders_id'] ?? args['ordersId']);
     _productId = _toInt(
       args['orders_product_id'] ?? args['ordersProductId'],
     );
 
-    //  상품의 대표 이미지 id 조회 (없으면 null)
+    _customerId = _toInt(
+      args['orders_customer_id'] ??
+          args['ordersCustomerId'] ??
+          args['customer_id'] ??
+          args['customerId'],
+    );
+
+    _storeId = _toInt(
+      args['orders_store_id'] ??
+          args['ordersStoreId'] ??
+          args['store_id'] ??
+          args['storeId'],
+    );
+
+    print("OrderDetail args: $args");
+    print(
+      "ordersId=$_ordersId customerId=$_customerId storeId=$_storeId",
+    );
+
+    _startReturnPolling();
+
+    if (_ordersId != null &&
+        (_customerId == null || _storeId == null)) {
+      _fetchOrderMetaFromSelect(_ordersId!);
+    } else {
+      _refreshReturnStatus();
+    }
+
     _imageIdFuture = _fetchMainImageId(_productId);
   }
 
-  // ------------------------------
-  // 1) 숫자 변환: dynamic -> int?
-  // ------------------------------
+  @override
+  void dispose() {
+    _returnTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startReturnPolling() {
+    _returnTimer?.cancel();
+    _returnTimer = Timer.periodic(Duration(seconds: 5), (_) async {
+      await _refreshReturnStatus();
+      if (_returnStatus == 1) {
+        _returnTimer?.cancel();
+      }
+    });
+  }
+
   int? _toInt(dynamic v) {
-    // 값이 아예 없으면(null) 그대로 null 반환
     if (v == null) return null;
-
-    // 이미 int 타입이면 변환할 필요 없이 그대로 반환
     if (v is int) return v;
-
-    // String("123") 같은 형태로 들어오면 int로 변환 시도
-    // 변환 실패("abc")하면 null 반환 (에러 안 나게 안전처리)
     return int.tryParse(v.toString());
   }
 
-  // 2) 날짜 포맷: 서버 날짜 -> "yyyy.MM.dd"
   String _formatDate(dynamic v) {
-    // 값이 없으면 화면에 '-' 표시
     if (v == null) return "-";
-
-    // 어떤 타입이든 문자열로 변환해서 처리
     String s = v.toString();
 
-    // 서버에서 날짜가 이런 형태로 올 수 있음:
-    //  - "2026-01-04T12:30:00" (ISO 형식)
-    //  - "2026-01-04 12:30:00" (MySQL datetime 형식)
-    //
-    if (s.contains('T'))
-      s = s.split('T')[0]; // "2026-01-04T..." -> "2026-01-04"
-    if (s.contains(' '))
-      s = s.split(' ')[0]; // "2026-01-04 12..." -> "2026-01-04"
+    if (s.contains('T')) s = s.split('T')[0];
+    if (s.contains(' ')) s = s.split(' ')[0];
 
-    // "2026-01-04" -> "2026.01.04" 로 바꾸기
     final parts = s.split('-');
     if (parts.length == 3) {
       return "${parts[0]}.${parts[1]}.${parts[2]}";
     }
-
-    // 예상한 형식이 아니면 원본 그대로 보여주기(깨지지 않게)
     return s;
   }
 
-  // ---------------------------------------
-  // 3) 숫자 콤마: 139000 -> "139,000"
-  // ---------------------------------------
   String _comma(int n) {
-    // 숫자를 문자열로 바꾸고, 정규식으로 3자리마다 콤마 추가
-    // 예) 139000 -> 139,000
     return n.toString().replaceAllMapped(
       RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (m) => ',',
     );
   }
-  //추가적으로 헷갈리지않게 다음에는 패키지 사용
 
   String _won(int n) => "${_comma(n)}원";
 
-  //  주문 상태 int -> 텍스트
   String _statusText(int? status) {
     switch (status) {
       case 0:
@@ -112,7 +138,6 @@ class _OrderDetailState extends State<OrderDetail> {
     }
   }
 
-  //  주문 상태 int -> 색상
   Color _statusColor(int? status) {
     switch (status) {
       case 1:
@@ -126,8 +151,18 @@ class _OrderDetailState extends State<OrderDetail> {
     }
   }
 
-  //  images/select/{productId} 로 이미지 id 리스트를 받아서
-  //  마지막(최신) images_id를 골라서 반환
+  String _returnText(int? status) {
+    if (status == 0) return "반품 대기중";
+    if (status == 1) return "반품 완료";
+    return "반품 없음";
+  }
+
+  Color _returnColor(int? status) {
+    if (status == 0) return Color(0xFFDC2626);
+    if (status == 1) return Color(0xFF16A34A);
+    return Color(0xFF6B7280);
+  }
+
   Future<int?> _fetchMainImageId(int? productId) async {
     if (productId == null) return null;
 
@@ -141,17 +176,189 @@ class _OrderDetailState extends State<OrderDetail> {
 
     if (results is! List || results.isEmpty) return null;
 
-    // 최신 이미지(마지막) 사용
     final last = results.last;
     return _toInt(last['images_id']);
   }
 
-  //  반품 요청 다이얼로그 + 서버 전송(returns/insert)
+  Widget _imgPlaceholder(IconData icon) {
+    return Container(
+      color: Color(0xFFE5E7EB),
+      child: Center(child: Icon(icon, color: Colors.grey)),
+    );
+  }
+
+  Widget _buildHistoryImageFirst() {
+    if (_ordersId != null) {
+      return Image.network(
+        "$urlPath/images/view/$_ordersId",
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Color(0xFFE5E7EB),
+            child: Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildProductFallbackImage();
+        },
+      );
+    }
+
+    return _buildProductFallbackImage();
+  }
+
+  Widget _buildProductFallbackImage() {
+    if (_imageIdFuture == null) {
+      return _imgPlaceholder(Icons.image);
+    }
+
+    return FutureBuilder<int?>(
+      future: _imageIdFuture,
+      builder: (context, snapshot) {
+        final imageId = snapshot.data;
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: Color(0xFFE5E7EB),
+            child: Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+
+        if (imageId == null) {
+          return _imgPlaceholder(Icons.image);
+        }
+
+        return Image.network(
+          "$urlPath/images/view/$imageId",
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _imgPlaceholder(Icons.broken_image);
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _refreshReturnStatus() async {
+    if (_ordersId == null || _customerId == null) return;
+
+    try {
+      if (!mounted) return;
+      _returnLoading = true;
+      setState(() {});
+
+      final uri = Uri.parse(
+        "$urlPath/returns/selectByCustomer/$_customerId",
+      );
+      final res = await http.get(uri);
+
+      if (res.statusCode != 200) return;
+
+      final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+      final results = decoded["results"];
+
+      int? foundStatus;
+
+      if (results is List) {
+        for (final item in results) {
+          if (item is Map) {
+            final oid = _toInt(item["returns_orders_id"]);
+            if (oid == _ordersId) {
+              foundStatus = _toInt(item["returns_status"]);
+              break;
+            }
+          }
+        }
+      }
+
+      if (!mounted) return;
+      _returnStatus = foundStatus;
+      setState(() {});
+    } catch (e) {
+      print("refresh return status error: $e");
+    } finally {
+      if (!mounted) return;
+      _returnLoading = false;
+      setState(() {});
+    }
+  }
+
+  Future<void> _fetchOrderMetaFromSelect(int ordersId) async {
+    try {
+      if (!mounted) return;
+      _metaLoading = true;
+      setState(() {});
+
+      final uri = Uri.parse("$urlPath/orders/select");
+      final res = await http.get(uri);
+
+      print("orders/select status: ${res.statusCode}");
+      print("orders/select body: ${utf8.decode(res.bodyBytes)}");
+
+      if (res.statusCode != 200) return;
+
+      final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+      final results = decoded['results'];
+
+      if (results is! List) return;
+
+      Map<String, dynamic>? found;
+      for (final item in results) {
+        if (item is Map) {
+          final id = _toInt(item['orders_id']);
+          if (id == ordersId) {
+            found = Map<String, dynamic>.from(item);
+            break;
+          }
+        }
+      }
+
+      if (found == null) {
+        print("orders/select: orders_id=$ordersId not found");
+        return;
+      }
+
+      _customerId = _toInt(found['orders_customer_id']);
+      _storeId = _toInt(found['orders_store_id']);
+
+      print("meta loaded: customerId=$_customerId storeId=$_storeId");
+
+      if (!mounted) return;
+      setState(() {});
+
+      await _refreshReturnStatus();
+    } catch (e) {
+      print("meta fetch error: $e");
+    } finally {
+      if (!mounted) return;
+      _metaLoading = false;
+      setState(() {});
+    }
+  }
+
   Future<void> _showReturnDialogAndSend({
     required int? ordersId,
     required int? customerId,
     required int? storeId,
   }) async {
+    if (_returnStatus != null) {
+      Get.snackbar("반품 요청", "이미 해당 주문은 반품 요청이 접수되어 있어요.");
+      return;
+    }
+
     final controller = TextEditingController();
 
     final confirm = await showDialog<bool>(
@@ -208,12 +415,6 @@ class _OrderDetailState extends State<OrderDetail> {
       return;
     }
 
-    //  returns 테이블 insert에 필요한 값 체크
-    // returns_customer_id, returns_employee_id, returns_description,
-    // returns_orders_id, store_store_id
-    //
-    // 여기서 employee_id는 고객 화면에서는 보통 없어서 0으로 넣는 방식(팀 규칙 필요)
-    // 만약 DB에서 NOT NULL이면 0/1 같은 기본값이라도 있어야 함
     if (ordersId == null || customerId == null || storeId == null) {
       Get.snackbar("반품 요청", "주문 정보가 부족해서 반품 요청을 보낼 수 없어요.");
       return;
@@ -229,17 +430,37 @@ class _OrderDetailState extends State<OrderDetail> {
         },
         body: {
           "returns_customer_id": customerId.toString(),
-          "returns_employee_id": "0", //  고객 화면에서 임시값(팀 규칙 정해지면 수정)
+          "returns_employee_id": "0",
           "returns_description": desc,
           "returns_orders_id": ordersId.toString(),
           "store_store_id": storeId.toString(),
         },
       );
 
+      print("returns/insert status: ${res.statusCode}");
+      print("returns/insert body: ${utf8.decode(res.bodyBytes)}");
+
       if (res.statusCode == 200) {
         final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+
         if (decoded["results"] == "OK") {
+          _returnStatus = 0;
+          if (mounted) setState(() {});
           Get.snackbar("반품 요청", "반품 요청이 접수되었습니다.");
+          return;
+        }
+
+        if (decoded["results"] == "Error") {
+          final msg = (decoded["message"] ?? "").toString();
+
+          if (msg.contains("이미") || msg.contains("접수")) {
+            _returnStatus = 0;
+            if (mounted) setState(() {});
+            Get.snackbar("반품 요청", msg);
+            return;
+          }
+
+          Get.snackbar("반품 요청", msg.isEmpty ? "요청 실패" : msg);
           return;
         }
       }
@@ -252,10 +473,10 @@ class _OrderDetailState extends State<OrderDetail> {
 
   @override
   Widget build(BuildContext context) {
-    //  args에서 화면에 필요한 값들 꺼내기 (키 이름이 다를 수 있어 여러 후보 처리)
     final String orderNumber =
         (args['orders_number'] ?? args['ordersNumber'] ?? "-")
             .toString();
+
     final String orderDate = _formatDate(
       args['orders_date'] ?? args['ordersDate'],
     );
@@ -286,22 +507,41 @@ class _OrderDetailState extends State<OrderDetail> {
 
     final int total = price * qty;
 
-    //  반품 insert에 필요한 값들 (orders_id, customer_id, store_id)
-    final int? ordersId = _toInt(
-      args['orders_id'] ?? args['ordersId'],
-    );
-    final int? customerId = _toInt(
-      args['orders_customer_id'] ??
-          args['ordersCustomerId'] ??
-          args['customer_id'] ??
-          args['customerId'],
-    );
-    final int? storeId = _toInt(
-      args['orders_store_id'] ??
-          args['ordersStoreId'] ??
-          args['store_id'] ??
-          args['storeId'],
-    );
+    final int? ordersId = _ordersId;
+    final int? customerId = _customerId;
+    final int? storeId = _storeId;
+
+    final bool canReturn =
+        !_metaLoading &&
+        ordersId != null &&
+        customerId != null &&
+        storeId != null;
+
+    final bool alreadyReturned = (_returnStatus != null);
+
+    String statusLabel;
+    Color statusColor;
+
+    if (_returnLoading) {
+      statusLabel = "반품 상태 확인중";
+      statusColor = Color(0xFF6B7280);
+    } else if (_returnStatus != null) {
+      statusLabel = _returnText(_returnStatus);
+      statusColor = _returnColor(_returnStatus);
+    } else {
+      statusLabel = _statusText(ordersStatus);
+      statusColor = _statusColor(ordersStatus);
+    }
+
+    final String returnBtnText = _returnLoading
+        ? "확인중..."
+        : (_returnStatus == 0
+              ? "반품 대기중"
+              : _returnStatus == 1
+              ? "반품 완료"
+              : _metaLoading
+              ? "로딩중..."
+              : "반품 요청");
 
     return Scaffold(
       backgroundColor: Color(0xFFF5F5F7),
@@ -332,8 +572,6 @@ class _OrderDetailState extends State<OrderDetail> {
               child: Column(
                 children: [
                   SizedBox(height: 5),
-
-                  // ===================== 주문 정보 =====================
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(30),
@@ -346,17 +584,14 @@ class _OrderDetailState extends State<OrderDetail> {
                         SizedBox(height: 10),
                         _infoRow(
                           "주문 상태",
-                          _statusText(ordersStatus),
-                          valueColor: _statusColor(ordersStatus),
+                          statusLabel,
+                          valueColor: statusColor,
                           valueWeight: FontWeight.w800,
                         ),
                       ],
                     ),
                   ),
-
                   SizedBox(height: 10),
-
-                  // ===================== 구매 상품 =====================
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(14),
@@ -382,63 +617,7 @@ class _OrderDetailState extends State<OrderDetail> {
                               child: SizedBox(
                                 width: 64,
                                 height: 64,
-                                child: FutureBuilder<int?>(
-                                  future: _imageIdFuture,
-                                  builder: (context, snapshot) {
-                                    final imageId = snapshot.data;
-
-                                    //  로딩 중
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return Container(
-                                        color: Color(0xFFE5E7EB),
-                                        child: Center(
-                                          child: SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child:
-                                                CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-
-                                    //  이미지 없음(또는 에러)
-                                    if (imageId == null) {
-                                      return Container(
-                                        color: Color(0xFFE5E7EB),
-                                        child: Icon(
-                                          Icons.image,
-                                          color: Colors.grey,
-                                        ),
-                                      );
-                                    }
-
-                                    //  이미지 보여주기
-                                    return Image.network(
-                                      "$urlPath/images/view/$imageId",
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (
-                                            context,
-                                            error,
-                                            stackTrace,
-                                          ) {
-                                            return Container(
-                                              color: Color(
-                                                0xFFE5E7EB,
-                                              ),
-                                              child: Icon(
-                                                Icons.broken_image,
-                                                color: Colors.grey,
-                                              ),
-                                            );
-                                          },
-                                    );
-                                  },
-                                ),
+                                child: _buildHistoryImageFirst(),
                               ),
                             ),
                             SizedBox(width: 12),
@@ -490,10 +669,7 @@ class _OrderDetailState extends State<OrderDetail> {
                       ],
                     ),
                   ),
-
                   SizedBox(height: 10),
-
-                  // ===================== 결제 정보 =====================
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(14),
@@ -520,10 +696,7 @@ class _OrderDetailState extends State<OrderDetail> {
                       ],
                     ),
                   ),
-
                   SizedBox(height: 10),
-
-                  // ===================== 픽업 정보 =====================
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(20),
@@ -560,7 +733,6 @@ class _OrderDetailState extends State<OrderDetail> {
                       ],
                     ),
                   ),
-
                   SizedBox(height: 12),
                 ],
               ),
@@ -568,8 +740,6 @@ class _OrderDetailState extends State<OrderDetail> {
           );
         },
       ),
-
-      // ===================== 하단 버튼 + 네비 =====================
       bottomNavigationBar: SafeArea(
         top: false,
         child: Column(
@@ -604,14 +774,41 @@ class _OrderDetailState extends State<OrderDetail> {
                   SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () async {
-                        //  반품 요청 버튼 누르면 사유 입력받고 returns/insert로 전송
-                        await _showReturnDialogAndSend(
-                          ordersId: ordersId,
-                          customerId: customerId,
-                          storeId: storeId,
-                        );
-                      },
+                      onPressed: (!canReturn || alreadyReturned)
+                          ? () {
+                              if (_returnLoading) {
+                                Get.snackbar(
+                                  "반품 요청",
+                                  "반품 상태 확인중입니다.",
+                                );
+                                return;
+                              }
+                              if (alreadyReturned) {
+                                Get.snackbar(
+                                  "반품 요청",
+                                  "이미 해당 주문은 반품 요청이 접수되어 있어요.",
+                                );
+                                return;
+                              }
+                              if (_metaLoading) {
+                                Get.snackbar(
+                                  "반품 요청",
+                                  "주문 정보를 불러오는 중입니다. 잠시만요.",
+                                );
+                                return;
+                              }
+                              Get.snackbar(
+                                "반품 요청",
+                                "주문 정보가 부족해서 반품 요청을 보낼 수 없어요.",
+                              );
+                            }
+                          : () async {
+                              await _showReturnDialogAndSend(
+                                ordersId: ordersId,
+                                customerId: customerId,
+                                storeId: storeId,
+                              );
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         minimumSize: Size.fromHeight(52),
@@ -620,7 +817,7 @@ class _OrderDetailState extends State<OrderDetail> {
                         ),
                       ),
                       child: Text(
-                        "반품 요청",
+                        returnBtnText,
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
@@ -638,7 +835,6 @@ class _OrderDetailState extends State<OrderDetail> {
     );
   }
 
-  //  공통 라벨/값 UI
   Widget _infoRow(
     String label,
     String value, {
