@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:project_pairs_251230/page_chart.dart';
 import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/category/category_list.dart';
+import 'package:project_pairs_251230/view/chat/customer_chat_screen.dart';
 import 'package:project_pairs_251230/view/order/shopping_cart.dart';
 import 'package:project_pairs_251230/view/product/main_page_home.dart';
 import 'package:project_pairs_251230/view/search/search_result.dart';
@@ -61,9 +62,7 @@ class _MainPageState extends State<MainPage>
         actions: [
           TextButton(onPressed: () => Get.to(PageChart()), child: Text('Page')),
           IconButton(
-            onPressed: () {
-              //
-            },
+            onPressed: () => Get.to(CustomerChatScreen()),
             icon: Icon(Icons.chat_bubble_outline,
             color: const Color.fromARGB(255, 255, 255, 255),),
           ),
