@@ -245,6 +245,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
 
     var jsonData = json.decode(utf8.decode(response.bodyBytes));
     if (response.statusCode == 200) {
+      GlobalData.customerId = jsonData['id'];
       // 로그인 성공 -> MainPage 이동
       Get.to(MainPage());
     } else {
