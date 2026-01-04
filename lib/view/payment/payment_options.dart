@@ -49,6 +49,7 @@ class _PaymentOptionsState extends State<PaymentOptions> {
   late final Map<String, dynamic> value;          // 한 상품처리
   late final List<Map<String, dynamic>> items;    // 장바구나 상품처리
   int countOrder = 0;       // 주문오더 count
+  late bool _checkCartToPayment;      // cart로 넘어왔는지 그냥 단품사기로 넘어왔는지확인
   Message message = Message();
 
   // 상태 관리 변수
@@ -69,6 +70,7 @@ class _PaymentOptionsState extends State<PaymentOptions> {
         .toList();        // value가 뭐가 넘어올지모르니 다시 정의
     customerData = [];
     storeData = [];
+    _checkCartToPayment = value['cartToPayment'] as bool;
     _init();
   }
 
@@ -488,7 +490,11 @@ class _PaymentOptionsState extends State<PaymentOptions> {
       if (res.statusCode == 200) {
         await updateStockAction(productId, qty);
         if (countOrder == items.length) {
-          message.showDialog("주문이 완료되었습니다.", "주문이 정상적으로 접수되었습니다.");          
+          if (_checkCartToPayment == true) {
+            await deleteCartAll(customer_id);            
+          }
+          message.showDialog("주문이 완료되었습니다.", "주문이 정상적으로 접수되었습니다.");
+          // Navigator.pop(context);      
         }
       } else {
         message.errorSnackBar("죄송합니다. 주문에 실패했습니다.", "주문에 실패했습니다. 다시 시도해 보세요.");
@@ -616,5 +622,17 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     final date = DateFormat('yyyyMMdd').format(DateTime.now());
     final random = Random().nextInt(90000) + 10000;
     return 'ORD-$date-$random';
+  }
+
+  Future<void> deleteCartAll(int customer_id) async {
+    // 카트에있는거 삭제
+   var url = Uri.parse("$urlPath/cart/deleteAll/$customer_id");
+   var response = await http.delete(url);
+   var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+   var result = dataConvertedJSON['results'];
+   if (result != 'OK') {
+     message.errorSnackBar("문제발생", "삭제중 문제가 발생했습니다.");
+   }
+    setState(() {});
   }
 } // class

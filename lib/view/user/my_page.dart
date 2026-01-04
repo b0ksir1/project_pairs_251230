@@ -6,6 +6,7 @@ import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/auth/profile_edit.dart';
 import 'package:project_pairs_251230/view/order/order_history.dart';
 import 'package:project_pairs_251230/view/order/wish_list.dart';
+import 'package:project_pairs_251230/view/user/user_board.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});

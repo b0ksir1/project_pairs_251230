@@ -185,7 +185,8 @@ class _MainPageState extends State<MainPage>
                     GestureDetector(
                       onTap: () {
                         searchController.clear();
-                        setModalState(() {}); // BottomSheet 내부만 갱신
+                        Get.back();
+                        // setModalState(() {}); // BottomSheet 내부만 갱신
                       },
                       child: const Icon(Icons.close, size: 22),
                     ),

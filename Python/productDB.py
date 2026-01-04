@@ -20,33 +20,33 @@ async def select(query: str):
     like = f"%{query}%"
 
     sql = """
-  SELECT
+  select
       p.product_id,
       p.product_name,
       p.product_price,
       p.product_description,
-      c.color_name     AS product_color,
-      b.brand_name     AS product_brand,
-      cg.category_name AS product_category,
-      COALESCE(s.total_stock, 0) AS total_stock
-    FROM product p
-    JOIN (
-      SELECT product_name, product_color_id, MAX(product_id) AS max_id
-      FROM product
-      GROUP BY product_name, product_color_id
-    ) x ON p.product_id = x.max_id
-    JOIN color c     ON c.color_id = p.product_color_id
-    JOIN brand b     ON b.brand_id = p.product_brand_id
-    JOIN category cg ON cg.category_id = p.product_category_id
-    LEFT JOIN (
-      SELECT stock_product_id, SUM(stock_quantity) AS total_stock
-      FROM stock
-      GROUP BY stock_product_id
-    ) s ON s.stock_product_id = p.product_id
-    WHERE
-      p.product_name LIKE %s
-      OR b.brand_name LIKE %s
-      OR cg.category_name LIKE %s
+      c.color_name     as product_color,
+      b.brand_name     as product_brand,
+      cg.category_name as product_category,
+      coalesce(s.total_stock, 0) as total_stock
+    from product p
+    join (
+      select product_name, product_color_id, max(product_id) as max_id
+      from product
+      group by product_name, product_color_id
+    ) x on p.product_id = x.max_id
+    join color c     on c.color_id = p.product_color_id
+    join brand b     on b.brand_id = p.product_brand_id
+    join category cg on cg.category_id = p.product_category_id
+    left join (
+      select stock_product_id, sum(stock_quantity) as total_stock
+      from stock
+      group by stock_product_id
+    ) s on s.stock_product_id = p.product_id
+    where
+      p.product_name like %s
+      or b.brand_name like %s
+      or cg.category_name like %s
     """
 
     curs.execute(sql, (like, like, like))

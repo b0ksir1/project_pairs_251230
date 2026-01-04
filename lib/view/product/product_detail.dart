@@ -452,7 +452,11 @@ class _ProductDetailState extends State<ProductDetail> {
                         price: _product!.price,
                         imageId: _productMainImageProductIdList[_selectedColorIndex],
                         qty: _qty);
-                    Get.to(PaymentOptions(), arguments: {"customerId": customer_id, "items": [item.toJson()]})!.then((value) => getProductData(product_id));
+                    Get.to(PaymentOptions(), arguments: {
+                      "customerId": customer_id,
+                      "cartToPayment": false, 
+                      "items": [item.toJson()]
+                    })!.then((value) => getProductData(product_id));
                   },
                   style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.black), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                   child: const Text("구매하기", style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold)),
