@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:project_pairs_251230/model/orders.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:http/http.dart' as http;
@@ -160,45 +159,6 @@ class _OrderHistoryState extends State<OrderHistory> {
             },
           ),
         ),
-        // child: Row(
-        //   children: List.generate(_tabs.length, (index) {
-        //     final isSelected = index == _selectedTab;
-        //     return Expanded(
-        //       child: Padding(
-        //         padding: const EdgeInsets.symmetric(horizontal: 4),
-        //         child: ElevatedButton(
-        //           onPressed: () {
-        //             setState(() {
-        //               _selectedTab = index;
-        //               if(_selectedTab == 0)
-        //               {
-        //                 getOrderData();
-        //               }
-        //               else
-        //               {
-        //                 getOrderDataByStatus(_selectedTab-1);
-        //               }
-        //             });
-        //           },
-        //           style: ElevatedButton.styleFrom(
-        //             foregroundColor: isSelected ? Colors.white : Colors.black,
-        //             backgroundColor:
-        //                 isSelected ? const Color.fromARGB(255, 0, 0, 0) : Colors.grey[200],
-        //             shape: RoundedRectangleBorder(
-        //               borderRadius: BorderRadius.circular(20),
-        //             ),
-        //           ),
-        //           child: Text(
-        //             _tabs[index],
-        //             style: TextStyle(
-        //               fontSize: 12
-        //             ),
-        //           ),
-        //         ),
-        //       ),
-        //     );
-        //   }),
-        // ),
       ),
     );
   }

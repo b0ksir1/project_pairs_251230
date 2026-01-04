@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, HTTPException
 import pymysql
 import config
+from pydantic import BaseModel
 router = APIRouter()
 
 def connect():
@@ -12,8 +13,43 @@ def connect():
         charset="utf8"
     )
 
+# --------------------------------------------------------------
+# Customer Login
 
+def select_customer_by_email(email: str): # 로그인 전용 DB 조회 함수
+    conn = connect()
+    curs = conn.cursor(pymysql.cursors.DictCursor) # Dict형태로 반환
 
+    sql = """
+    select customer_id, customer_email, customer_password
+    from customer
+    where customer_email = %s
+    """
+    curs.execute(sql, (email,))
+    result = curs.fetchone() # 로그인은 단건 조회
+
+    conn.close()
+    return result
+
+class LoginCustomer(BaseModel): # 프론트에서 받은 데이터 검증 단계
+    email: str
+    password: str
+
+@router.post("/login")
+def login(data: LoginCustomer):
+    customer = select_customer_by_email(data.email)
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="이메일이 존재하지 않습니다.")
+
+    if customer["customer_password"] != data.password:
+        raise HTTPException(status_code=401, detail="비밀번호가 틀렸습니다.")
+
+    return {
+        "id": customer["customer_id"],
+        "email": customer["customer_email"],
+    }
+# --------------------------------------------------------------
 
 
 @router.get('/select')
@@ -72,4 +108,3 @@ async def delete(customer_id:int):
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"}  
-
