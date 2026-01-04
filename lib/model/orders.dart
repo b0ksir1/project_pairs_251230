@@ -2,7 +2,8 @@ class Orders {
   int? ordersId;
   int? ordersCustomerId;
   int? ordersStatus;
-  int ordersNumber;
+  int? ordersProductId;
+  String ordersNumber;
   int ordersQty;
   int productPrice;
   String ordersPayment;
@@ -14,11 +15,11 @@ class Orders {
   String brandName;
   String categoryName;
 
-
   Orders({
     this.ordersId,
     this.ordersCustomerId,
     this.ordersStatus,
+    this.ordersProductId,
     required this.ordersNumber,
     required this.ordersQty,
     required this.productPrice,

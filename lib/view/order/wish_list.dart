@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/util/global_data.dart';
 
 class WishList extends StatefulWidget {
   const WishList({super.key});
@@ -12,8 +12,8 @@ class WishList extends StatefulWidget {
 }
 
 class _WishListState extends State<WishList> {
-  String baseUrl = "http://172.30.1.78:8000";
-  int customerId = 1;
+  final String baseUrl = GlobalData.url;
+  late final int customerId;
 
   bool isLoading = true;
 
@@ -22,7 +22,13 @@ class _WishListState extends State<WishList> {
   @override
   void initState() {
     super.initState();
+    customerId = _getCustomerId();
     fetchWishlist();
+  }
+
+  int _getCustomerId() {
+    final args = Get.arguments as Map<String, dynamic>?;
+    return (args?["customerId"] as int?) ?? 1;
   }
 
   String formatWon(int value) {
@@ -32,153 +38,85 @@ class _WishListState extends State<WishList> {
 
   Future<void> fetchWishlist() async {
     try {
-      setState(() {
-        isLoading = true;
-      });
+      setState(() => isLoading = true);
 
-      var url = Uri.parse("$baseUrl/wishlist/select/$customerId");
-      var res = await http.get(url);
+      final url = Uri.parse("$baseUrl/wishlist/select/$customerId");
+      final res = await http.get(url);
 
       if (res.statusCode != 200) {
         throw Exception("서버 응답 오류: ${res.statusCode}");
       }
 
-      var data = json.decode(res.body);
-      var list = (data["results"] as List?) ?? [];
-
-      List<Map<String, dynamic>> parsed = [];
-      for (final x in list) {
-        final m = x as Map<String, dynamic>;
-        parsed.add({
-          "product_id": m["wishlist_product_id"],
-          "name": (m["product_name"] ?? "").toString(),
-          "price": (m["product_price"] is int)
-              ? m["product_price"]
-              : int.tryParse("${m["product_price"]}") ?? 0,
-          "image_base64": m["image_base64"],
-          "liked": true,
-        });
-      }
+      final data = json.decode(utf8.decode(res.bodyBytes));
+      final List list = data["results"] ?? [];
 
       setState(() {
-        items = parsed;
+        items = List<Map<String, dynamic>>.from(list);
         isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
       Get.snackbar("위시리스트", "불러오기 실패: $e");
     }
   }
 
-  Future<void> toggleLike(int index) async {
-    final item = items[index];
-    final int productId = (item["product_id"] is int)
-        ? item["product_id"]
-        : int.tryParse("${item["product_id"]}") ?? 0;
+  Future<void> removeFromWishlist(int index) async {
+    final removed = items[index];
+    final int productId = removed["wishlist_product_id"] ?? 0;
 
-    final bool before = (item["liked"] as bool?) ?? true;
+    setState(() => items.removeAt(index));
 
-    if (before == true) {
-      final removed = items[index];
+    try {
+      final url = Uri.parse(
+        "$baseUrl/wishlist/deleteByCustomerProduct/$customerId/$productId",
+      );
+      final res = await http.delete(url);
 
-      setState(() {
-        items.removeAt(index);
-      });
+      if (res.statusCode != 200)
+        throw Exception("삭제 실패: ${res.statusCode}");
 
-      try {
-        var url = Uri.parse(
-          "$baseUrl/wishlist/deleteByCustomerProduct/$customerId/$productId",
-        );
-        var res = await http.delete(url);
-
-        if (res.statusCode != 200) {
-          throw Exception("삭제 실패: ${res.statusCode}");
-        }
-
-        var body = json.decode(res.body);
-        if ((body["results"] ?? "") != "OK") {
-          throw Exception("삭제 실패: ${res.body}");
-        }
-      } catch (e) {
-        setState(() {
-          items.insert(index, removed);
-        });
-        Get.snackbar("위시리스트", "삭제 실패(복구됨): $e");
+      final body = json.decode(utf8.decode(res.bodyBytes));
+      if ((body["results"] ?? "") != "OK") {
+        throw Exception("삭제 실패: ${utf8.decode(res.bodyBytes)}");
       }
-    } else {
-      setState(() {
-        items[index]["liked"] = true;
-      });
-
-      try {
-        var url = Uri.parse("$baseUrl/wishlist/insert");
-        var res = await http.post(
-          url,
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: {
-            "wishlist_customer_id": customerId.toString(),
-            "wishlist_product_id": productId.toString(),
-          },
-        );
-
-        if (res.statusCode != 200) {
-          throw Exception("추가 실패: ${res.statusCode}");
-        }
-
-        var body = json.decode(res.body);
-        if ((body["results"] ?? "") != "OK") {
-          throw Exception("추가 실패: ${res.body}");
-        }
-      } catch (e) {
-        setState(() {
-          items[index]["liked"] = false;
-        });
-        Get.snackbar("위시리스트", "추가 실패(복구됨): $e");
-      }
+    } catch (e) {
+      setState(() => items.insert(index, removed));
+      Get.snackbar("위시리스트", "삭제 실패(복구됨): $e");
     }
   }
 
-  Future<void> addToCart(int index) async {
+  Future<void> moveToCart(int index) async {
+    final removed = items[index];
+    final int productId = removed["wishlist_product_id"] ?? 0;
+
+    setState(() => items.removeAt(index));
+
     try {
-      final item = items[index];
-      final int productId = (item["product_id"] is int)
-          ? item["product_id"]
-          : int.tryParse("${item["product_id"]}") ?? 0;
-
-      if (productId == 0) {
-        Get.snackbar("장바구니", "product_id가 올바르지 않습니다");
-        return;
-      }
-
-      var url = Uri.parse("$baseUrl/cart/insert");
-      var res = await http.post(
+      final url = Uri.parse("$baseUrl/wishlist/moveToCart");
+      final res = await http.post(
         url,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: {
-          "cart_customer_id": customerId.toString(),
-          "cart_product_id": productId.toString(),
-          "cart_product_quantity": "1",
+          "customer_id": customerId.toString(),
+          "product_id": productId.toString(),
+          "quantity": "1",
         },
       );
 
-      if (res.statusCode != 200) {
-        throw Exception("추가 실패: ${res.statusCode}");
-      }
+      if (res.statusCode != 200)
+        throw Exception("이동 실패: ${res.statusCode}");
 
-      var body = json.decode(res.body);
+      final body = json.decode(utf8.decode(res.bodyBytes));
       if ((body["results"] ?? "") != "OK") {
-        throw Exception("추가 실패: ${res.body}");
+        throw Exception("이동 실패: ${utf8.decode(res.bodyBytes)}");
       }
 
-      Get.snackbar("장바구니", "장바구니에 담았습니다");
+      Get.snackbar("장바구니", "장바구니로 이동했습니다");
     } catch (e) {
-      Get.snackbar("장바구니", "담기 실패: $e");
+      setState(() => items.insert(index, removed));
+      Get.snackbar("장바구니", "이동 실패(복구됨): $e");
     }
   }
 
@@ -227,15 +165,11 @@ class _WishListState extends State<WishList> {
               ),
               itemBuilder: (context, index) {
                 final item = items[index];
-                final bool liked = (item["liked"] as bool?) ?? false;
 
-                Uint8List? imageBytes;
-                try {
-                  String? b64 = item["image_base64"];
-                  if (b64 != null && b64.isNotEmpty) {
-                    imageBytes = base64Decode(b64);
-                  }
-                } catch (_) {}
+                final String name = (item["product_name"] ?? "")
+                    .toString();
+                final int price = item["product_price"] ?? 0;
+                final int? imagesId = item["images_id"];
 
                 return Container(
                   padding: EdgeInsets.all(12),
@@ -254,10 +188,16 @@ class _WishListState extends State<WishList> {
                               width: double.infinity,
                               height: 140,
                               color: Color(0xFFE5E7EB),
-                              child: imageBytes != null
-                                  ? Image.memory(
-                                      imageBytes,
+                              child: imagesId != null
+                                  ? Image.network(
+                                      "$baseUrl/images/view/$imagesId",
                                       fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) {
+                                        return Icon(
+                                          Icons.broken_image,
+                                          color: Colors.grey,
+                                        );
+                                      },
                                     )
                                   : Icon(
                                       Icons.image,
@@ -269,14 +209,10 @@ class _WishListState extends State<WishList> {
                             right: 6,
                             top: 6,
                             child: InkWell(
-                              onTap: () => toggleLike(index),
+                              onTap: () => removeFromWishlist(index),
                               child: Icon(
-                                liked
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: liked
-                                    ? Colors.red
-                                    : Color(0xFF9CA3AF),
+                                Icons.favorite,
+                                color: Colors.red,
                                 size: 22,
                               ),
                             ),
@@ -285,7 +221,7 @@ class _WishListState extends State<WishList> {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        item["name"].toString(),
+                        name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -296,7 +232,7 @@ class _WishListState extends State<WishList> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        formatWon((item["price"] as int?) ?? 0),
+                        formatWon(price),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
@@ -309,7 +245,7 @@ class _WishListState extends State<WishList> {
                           width: double.infinity,
                           height: 38,
                           child: ElevatedButton(
-                            onPressed: () => addToCart(index),
+                            onPressed: () => moveToCart(index),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               shape: RoundedRectangleBorder(

@@ -247,7 +247,8 @@ async def selectApprove():
         size.size_name,
         brand.brand_name,
         category.category_name,    
-        p.product_price 
+        p.product_price,
+        stock.stock_quantity 
         from product as p
             inner join size
                 on size.size_id = p.product_size_id
@@ -257,6 +258,8 @@ async def selectApprove():
                 on brand.brand_id = p.product_brand_id
             inner join category
                 on category.category_id = p.product_category_id
+            inner join stock
+                on stock.stock_product_id = p.product_id     
     '''
     )
     rows = curs.fetchall()
@@ -270,6 +273,7 @@ async def selectApprove():
                'brand' : row[4],
                'category' : row[5],
                'price' : row[6],
+               'qty' : row[7],
                } for row in rows]
     return {'results' : result}
 
@@ -391,9 +395,11 @@ async def insert(product_color_id :int = Form(...),
             product_name, 
             product_description, 
             product_price))
+        product_id = curs.lastrowid
         conn.commit()
         conn.close()
-        return {"results" : "OK"}
+        return {"results" : "OK",
+                "product_id" : product_id}
 
     except Exception as e:
         print("Error ", e)
@@ -452,3 +458,46 @@ async def delete(product_id:int):
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"}  
+
+
+# 브랜드별 제품
+@router.get("/products")
+async def brand_products():
+    conn = connect()
+    curs = conn.cursor(pymysql.cursors.DictCursor)
+
+    sql = """
+    SELECT
+        b.brand_id,
+        b.brand_name,
+        p.product_id,
+        p.product_name,
+        p.product_price
+    FROM brand b
+    JOIN product p ON b.brand_id = p.product_brand_id
+    ORDER BY b.brand_id, p.product_id
+    """
+    curs.execute(sql)
+    rows = curs.fetchall()
+    conn.close()
+
+    # 브랜드별 그룹핑
+    brand_map = {}
+
+    for row in rows:
+        brand_id = row["brand_id"]
+
+        if brand_id not in brand_map:
+            brand_map[brand_id] = {
+                "brand_id": brand_id,
+                "brand_name": row["brand_name"],
+                "products": []
+            }
+
+        brand_map[brand_id]["products"].append({
+            "product_id": row["product_id"],
+            "product_name": row["product_name"],
+            "product_price": row["product_price"]
+        })
+
+    return {"results": list(brand_map.values())}

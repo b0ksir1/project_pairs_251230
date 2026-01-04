@@ -15,6 +15,9 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
+  // property
+  final _dataList = [];
+  final urlPath = GlobalData.url;
   String imageUrl = "${GlobalData.url}/images/view";
   String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
 
@@ -26,12 +29,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
     super.initState();
     _stockList = [];
     getProductData();
+    getJSONData();
   }
 
   // ===================== UI =====================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 241, 250, 253),
       body: Row(
         children: [
           AdminSideBar(
@@ -40,23 +45,49 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(30, 100, 30, 0),
+              padding: EdgeInsets.fromLTRB(30, 80, 30, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Dashboard Overview', style: TextStyle(fontSize: 30)),
-                  Text('welcome back, here`s happening today'),
+                  Text('Dashboard Overview', style: _adminTitle()),
+                  Text(
+                    "welcome back, here's happening today",
+                    style: TextStyle(fontSize: 20),
+                  ),
                   SizedBox(height: 20),
-                  SizedBox(
+                  Container(
+                    height: 80,
                     width: double.infinity,
-                    height: 100,
+                    decoration: containerStyle(),
                     child: Row(
                       children: [
-                        Icon(Icons.attach_money_outlined),
-                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 80,
+                          child: Icon(Icons.attach_money_outlined),
+                        ),
+
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [Text('매출'), Text('금액 나오는 곳')],
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '매출',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+                              child: Text(
+                                '$monthSales원',
+                                style: TextStyle(
+                                  color: const Color.fromARGB(255, 0, 0, 0),
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -68,44 +99,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Top Selling Shoes'),
-                        Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(8),
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    'images/dog1.png',
-                                    width: 80,
-                                    height: 80,
-                                  ),
-                                  SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('제품 이름'),
-                                      Text('제품 색상'),
-                                      Text('제품 브랜드'),
-                                    ],
-                                  ),
-                                  SizedBox(width: 20),
-                                  Text('제품 판매 수'),
-                                ],
-                              ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
+                          child: Text(
+                            'Top Selling Shoes',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
+                          ),
                         ),
+                        // ===== 상품 목록 =====
+                        _buildHead(),
+                        _buildListView(),
                       ],
                     ),
                   ),
 
                   SizedBox(height: 20),
-
-                  // ===== 상품 목록 =====
-                  _buildHead(),
-                  _buildListView(),
                 ],
               ),
             ),
@@ -118,26 +129,52 @@ class _AdminDashboardState extends State<AdminDashboard> {
   // ===================== Widgets =====================
 
   Widget _buildHead() {
-    return Row(
-      children: [
-        SizedBox(width: 15),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.15,
-          child: Text('상품명', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.3,
-          child: Text('상품 이미지', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 갯수', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 상태', style: headerStyle()),
-        ),
-      ],
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: containerStyle(),
+
+      child: Row(
+        children: [
+          cell(
+            child: Text('NO', style: headerStyle()),
+            flex: 1,
+            alignment: Alignment.center,
+          ),
+          cell(
+            child: Text('상품 이미지', style: headerStyle()),
+            flex: 2,
+            alignment: Alignment.center,
+          ),
+          cell(
+            child: Text('상품명', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 3,
+          ),
+
+          cell(
+            child: Text('상품 갯수', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 2,
+          ),
+          cell(
+            child: Text('상품 상태', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget cell({
+    required Widget child,
+    required int flex,
+    Alignment alignment = Alignment.centerLeft,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Align(alignment: alignment, child: child),
     );
   }
 
@@ -149,30 +186,51 @@ class _AdminDashboardState extends State<AdminDashboard> {
           final stock = _stockList[index];
 
           return Card(
-            child: Row(
-              children: [
-                SizedBox(width: 15),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.15,
-                  child: Text(stock.productName, style: bodyStyle()),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  child: Image.network(
-                    '${GlobalData.url}/images/view/${stock.productId}?t=${DateTime.now().millisecondsSinceEpoch}',
-                    width: 100,
-                    height: 100,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+              child: Row(
+                children: [
+                  cell(
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    flex: 1,
                   ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text(stock.productQty.toString(), style: bodyStyle()),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text('상품 상태', style: bodyStyle()),
-                ),
-              ],
+
+                  cell(
+                    child: Image.network(
+                      '${GlobalData.url}/images/view/${stock.productId}?t=${DateTime.now().millisecondsSinceEpoch}',
+                      width: 120,
+                      height: 100,
+                    ),
+
+                    flex: 2,
+                    alignment: Alignment.center,
+                  ),
+                  cell(
+                    child: Text(stock.productName, style: bodyStyle()),
+                    flex: 3,
+                    alignment: Alignment.center,
+                  ),
+
+                  cell(
+                    child: Text(
+                      stock.productQty.toString(),
+                      style: bodyStyle(),
+                    ),
+                    flex: 2,
+                    alignment: Alignment.center,
+                  ),
+                  cell(
+                    child: Text('상품 상태', style: bodyStyle()),
+                    flex: 2,
+                    alignment: Alignment.center,
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -182,20 +240,53 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // ===================== Style =====================
 
+  // 타이틀
+  TextStyle _adminTitle() {
+    return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  }
+
+  // container
+  BoxDecoration containerStyle() {
+    return BoxDecoration(
+      color: const Color.fromARGB(255, 250, 238, 220),
+      border: Border.all(color: const Color.fromARGB(255, 177, 203, 214)),
+      borderRadius: BorderRadius.circular(6),
+    );
+  }
+
   TextStyle headerStyle() {
     return TextStyle(
       fontWeight: FontWeight.bold,
       fontSize: 15,
-      color: Colors.grey,
+      color: const Color(0xFF222222),
     );
   }
 
   TextStyle bodyStyle() {
-    return TextStyle(fontSize: 12, color: Colors.black);
+    return TextStyle(fontSize: 16, color: Colors.black);
   }
 
   // ===================== API =====================
+  Future getJSONData() async {
+    var url = Uri.parse('$urlPath/product/select');
+    var response = await http.get(url);
 
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      _dataList.clear();
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      List results = dataConvertedData['results'];
+      _dataList.addAll(results);
+      setState(() {});
+    } else {
+      print("error : ${response.statusCode}");
+    }
+  }
+
+  // void _showErrorSnackBar(String mag) {
+  //   Get.snackbar("WWWWWWWWWWWWWWWWWWWarning", mag);
+  // }
   Future<void> getProductData() async {
     final url = Uri.parse(stockSelectAllUrl);
     final response = await http.get(url);
@@ -221,6 +312,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
       setState(() {});
     } else {
       debugPrint("error : ${response.statusCode}");
+    }
+  }
+
+  Future<void> getOrders() async {
+    final url = Uri.parse('$urlPath/orders/select');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(utf8.decode(response.bodyBytes));
+      final List results = decoded['result'];
+
+      for (var item in results) {
+        print(item['orders_id']);
+        print(item['orders_quantity']);
+        print(item['orders_status']);
+      }
     }
   }
 }

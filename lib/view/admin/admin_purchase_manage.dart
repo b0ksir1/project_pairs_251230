@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:project_pairs_251230/model/product.dart';
 import 'package:project_pairs_251230/model/stock.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
@@ -20,84 +21,34 @@ class AdminPurchaseManage extends StatefulWidget {
 
 class _AdminPurchaseManageState extends State<AdminPurchaseManage> {
   // property
-  // 구매 내역 페이지
-
-  // final List<PurchaseOrder> data = [
-  //   PurchaseOrder(
-  //     po: '#PO-8821',
-  //     date: 'Oct 25, 2023',
-  //     supplier: 'Kicks Wholesale Inc.',
-  //     product: 'Nike Air Max Red',
-  //     qtyInfo: 'Qty: 50 · Unit: \$90.00',
-  //     totalCost: 4500,
-  //     status: 'Received',
-  //   ),
-  //   PurchaseOrder(
-  //     po: '#PO-8820',
-  //     date: 'Oct 24, 2023',
-  //     supplier: 'Adidas Global Dist.',
-  //     product: 'Jordan High Tops',
-  //     qtyInfo: 'Qty: 20 · Unit: \$140.00',
-  //     totalCost: 4450,
-  //     status: 'Shipped',
-  //   ),
-  // ];
-
-  // 상태 뱃지 위젯
-  Widget statusBadge(String status) {
-    Color bg;
-    Color text;
-
-    switch (status) {
-      case 'Received':
-        bg = Colors.green.shade100;
-        text = Colors.green;
-        break;
-      case 'Shipped':
-        bg = Colors.blue.shade100;
-        text = Colors.blue;
-        break;
-      case 'Pending':
-        bg = Colors.orange.shade100;
-        text = Colors.orange;
-        break;
-      case 'Cancelled':
-        bg = Colors.grey.shade300;
-        text = Colors.grey.shade700;
-        break;
-      default:
-        bg = Colors.grey.shade200;
-        text = Colors.black;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: text,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
+  // 드랍다운
+  int dropDownValue = 10;
+  final List<int> quantityItems = [10, 20, 30, 50, 100];
   String imageUrl = "${GlobalData.url}/images/view";
   String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
-
   late List<Stock> _stockList;
+  int selectedProduct = 0;
+  int selectedQty = 10;
+  final Map<String, int> colorMap = {'Red': 1, 'White': 2, 'Black': 3};
+  String selectedColor = 'Red';
+  List<Product> _productList = [];
+  int? selectedProductId;
+
+  // === product insert용 state ===
+  int selectedColorId = 1;
+  int selectedSizeId = 1;
+  int selectedBrandId = 1;
+  int selectedCategoryId = 1;
+  String productName = '';
+  String productDescription = '';
+  int productPrice = 0;
 
   @override
   void initState() {
     super.initState();
     _stockList = [];
-
     getProductData();
+    getProductList();
   }
 
   // === Property ===
@@ -113,12 +64,30 @@ class _AdminPurchaseManageState extends State<AdminPurchaseManage> {
           Expanded(
             child: _stockList.isEmpty
                 ? Center(child: Text('데이터가 비어있음'))
-                : Column(
-                    children: [
-                      Text('Dashboard Overview'),
-                      _buildHead(),
-                      _buildListView(),
-                    ],
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                              child: Icon(
+                                Icons.add_shopping_cart_sharp,
+                                size: 30,
+                              ),
+                            ),
+                            Text('제품 등록', style: _adminTitle()),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        _insertContainer(),
+                        SizedBox(height: 35),
+                        _buildHead(),
+                        _buildListView(),
+                      ],
+                    ),
                   ),
           ),
         ],
@@ -126,207 +95,240 @@ class _AdminPurchaseManageState extends State<AdminPurchaseManage> {
     );
   } // build
 
-  // === Widget ===
+  // ======================= Widget =================================
+  Widget _insertContainer() {
+    return Container(
+      width: double.infinity,
+      height: 80,
+      decoration: containerStyle(),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 아이콘
+          const SizedBox(width: 8),
+
+          // 제목
+          const Text(
+            '제품 등록',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(width: 24),
+
+          // 입력 영역
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('제품 이름'),
+                    DropdownButton<int>(
+                      value: selectedProductId,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: _productList.map((product) {
+                        return DropdownMenuItem<int>(
+                          value: product.product_id,
+                          child: Text(product.product_name),
+                        );
+                      }).toList(),
+                      onChanged: (int? value) {
+                        setState(() {
+                          selectedProductId = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('제품 색상'),
+                    DropdownButton<String>(
+                      value: selectedColor,
+                      items: colorMap.entries.map((entry) {
+                        return DropdownMenuItem<String>(
+                          value: entry.key,
+                          child: Text(entry.key),
+                        );
+                      }).toList(),
+                      onChanged: (String? value) {
+                        setState(() {
+                          selectedColor = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('수량'),
+                    DropdownButton<int>(
+                      value: selectedQty,
+                      items: quantityItems.map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value 개'),
+                        );
+                      }).toList(),
+                      onChanged: (int? value) {
+                        setState(() {
+                          selectedQty = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(width: 16),
+
+          // 등록 버튼
+          ElevatedButton(
+            onPressed: () {
+              // 상품 등록 로직
+              _showInsertList();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+              // side: const BorderSide(
+              //   color: Color(0xFFB1CBD6),
+              //   width: 1,
+              // ),
+              // elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            child: const Text(
+              '상품 등록',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 제품 목차 타이틀
+  Widget _buildHead() {
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: containerStyle(),
+
+      child: Row(
+        children: [
+          cell(
+            child: Text('NO', style: headerStyle()),
+            flex: 1,
+            alignment: Alignment.center,
+          ),
+          cell(
+            child: Text('상품 이미지', style: headerStyle()),
+            flex: 2,
+            alignment: Alignment.center,
+          ),
+          cell(
+            child: Text('상품명', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 3,
+          ),
+
+          cell(
+            child: Text('상품 갯수', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 2,
+          ),
+          cell(
+            child: Text('상품 상태', style: headerStyle()),
+            alignment: Alignment.center,
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget cell({
+    required Widget child,
+    required int flex,
+    Alignment alignment = Alignment.centerLeft,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Align(alignment: alignment, child: child),
+    );
+  }
 
   Widget _buildListView() {
     return Expanded(
       child: ListView.builder(
         itemCount: _stockList.length,
         itemBuilder: (context, index) {
+          final stock = _stockList[index];
+
           return Card(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(width: 15),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.15,
-                  child: Text(
-                    _stockList[index].productName,
-                    style: bodyStyle(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+              child: Row(
+                children: [
+                  cell(
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    flex: 1,
                   ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  child: Image.network(
-                    '${GlobalData.url}/images/view/${_stockList[index].productId}?t=${DateTime.now().millisecondsSinceEpoch}',
-                    width: 100,
-                    height: 100,
+
+                  cell(
+                    child: Image.network(
+                      '${GlobalData.url}/images/view/${stock.productId}?t=${DateTime.now().millisecondsSinceEpoch}',
+                      width: 120,
+                      height: 100,
+                    ),
+
+                    flex: 2,
+                    alignment: Alignment.center,
                   ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text(
-                    _stockList[index].productQty.toString(),
-                    style: bodyStyle(),
+                  cell(
+                    child: Text(stock.productName, style: bodyStyle()),
+                    flex: 3,
+                    alignment: Alignment.center,
                   ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text('상품 상태', style: bodyStyle()),
-                ),
-              ],
+
+                  cell(
+                    child: Text(
+                      stock.productQty.toString(),
+                      style: bodyStyle(),
+                    ),
+                    flex: 2,
+                    alignment: Alignment.center,
+                  ),
+                  cell(
+                    child: Text('상품 상태', style: bodyStyle()),
+                    flex: 2,
+                    alignment: Alignment.center,
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
     );
   }
-
-  Widget _buildHead() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        SizedBox(width: 15),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.15,
-          child: Text('상품명', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.3,
-          child: Text('상품 이미지', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 갯수', style: headerStyle()),
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 상태', style: headerStyle()),
-        ),
-      ],
-    );
-  }
-
-  // 테이블
-  // 테이블 헤더
-  Widget tableHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-      ),
-      child: Row(
-        children: const [
-          SizedBox(width: 40),
-          Expanded(flex: 2, child: Text('PURCHASE INFO')),
-          Expanded(flex: 2, child: Text('SUPPLIER')),
-          Expanded(flex: 3, child: Text('PRODUCT')),
-          Expanded(flex: 2, child: Text('TOTAL COST')),
-          Expanded(flex: 2, child: Text('STATUS')),
-          Expanded(flex: 1, child: Text('ACTIONS')),
-        ],
-      ),
-    );
-  }
-
-  // 테이블 한 줄
-  // Widget tableRow(PurchaseOrder item) {
-  //   // 데이터 불러올때 수정
-  //   return Container(
-  //     padding: const EdgeInsets.symmetric(
-  //       vertical: 16,
-  //       horizontal: 12,
-  //     ),
-  //     decoration: BoxDecoration(
-  //       border: Border(
-  //         bottom: BorderSide(color: Colors.grey.shade200),
-  //       ),
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         const SizedBox(
-  //           width: 40,
-  //           child: Checkbox(
-  //             value: false,
-  //             onChanged: null,
-  //           ),
-  //         ),
-
-  //         /// PURCHASE INFO
-  //         Expanded(
-  //           flex: 2,
-  //           child: Column(
-  //             crossAxisAlignment:
-  //                 CrossAxisAlignment.start,
-  //             children: [
-  //               Text(
-  //                 item.po,
-  //                 style: const TextStyle(
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //               Text(
-  //                 item.date,
-  //                 style: const TextStyle(
-  //                   fontSize: 12,
-  //                   color: Colors.grey,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-
-  //         /// SUPPLIER
-  //         Expanded(flex: 2, child: Text(item.supplier)),
-
-  //         /// PRODUCT
-  //         Expanded(
-  //           flex: 3,
-  //           child: Column(
-  //             crossAxisAlignment:
-  //                 CrossAxisAlignment.start,
-  //             children: [
-  //               Text(item.product),
-  //               Text(
-  //                 item.qtyInfo,
-  //                 style: const TextStyle(
-  //                   fontSize: 12,
-  //                   color: Colors.grey,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-
-  //         /// TOTAL COST
-  //         Expanded(
-  //           flex: 2,
-  //           child: Column(
-  //             crossAxisAlignment:
-  //                 CrossAxisAlignment.start,
-  //             children: [
-  //               Text(
-  //                 '\$${item.totalCost.toStringAsFixed(2)}',
-  //                 style: const TextStyle(
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //               const Text(
-  //                 'Net 30',
-  //                 style: TextStyle(
-  //                   fontSize: 12,
-  //                   color: Colors.grey,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-
-  //         /// STATUS
-  //         Expanded(
-  //           flex: 2,
-  //           child: statusBadge(item.status),
-  //         ),
-
-  //         /// ACTIONS
-  //         const Expanded(
-  //           flex: 1,
-  //           child: Icon(Icons.more_horiz),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   TextStyle headerStyle() {
     return TextStyle(
@@ -342,11 +344,54 @@ class _AdminPurchaseManageState extends State<AdminPurchaseManage> {
 
   // === Functions ===
 
+  Future<void> getProductList() async {
+    final url = Uri.parse('${GlobalData.url}/product/select');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(utf8.decode(response.bodyBytes));
+      final List results = decoded['results'];
+
+      _productList = results.map((item) => Product.fromJson(item)).toList();
+      // 기본값 세팅
+      if (_productList.isNotEmpty) {
+        selectedProductId ??= _productList.first.product_id;
+      }
+      setState(() {});
+    } else {
+      debugPrint('product list error: ${response.statusCode}');
+    }
+  }
+
+  Future<void> insertProduct() async {
+    final url = Uri.parse('${GlobalData.url}/product/insert');
+    final int selectedColorId = colorMap[selectedColor]!;
+    final request = http.MultipartRequest('POST', url)
+      ..fields['product_color_id'] = selectedColorId.toString()
+      ..fields['product_size_id'] = selectedSizeId.toString()
+      ..fields['product_brand_id'] = selectedBrandId.toString()
+      ..fields['product_category_id'] = selectedCategoryId.toString()
+      ..fields['product_name'] = productName
+      ..fields['product_description'] = productDescription
+      ..fields['product_price'] = productPrice.toString()
+      ..fields['product_id'] = selectedProductId.toString();
+
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    final decoded = json.decode(responseBody);
+
+    if (decoded['result'] == "OK") {
+      final productId = decoded['product_id'];
+
+      // 👉 여기서 stock insert 호출 가능
+      // 👉 목록 다시 불러오기
+      await getProductData();
+    }
+  }
+
   Future getProductData() async {
     var url = Uri.parse(stockSelectAllUrl);
     var response = await http.get(url);
-
-    print(response.body);
 
     if (response.statusCode == 200) {
       _stockList.clear();
@@ -365,5 +410,84 @@ class _AdminPurchaseManageState extends State<AdminPurchaseManage> {
     } else {
       print("error : ${response.statusCode}");
     }
+  }
+
+  _showInsertList() {
+    final selectedProductName = _productList
+        .firstWhere(
+          (p) => p.product_id == selectedProductId,
+          orElse: () => Product(
+            product_name: '선택 안됨',
+            product_price: 0,
+            product_description: '0',
+            product_color_id: 0,
+            product_size_id: 0,
+            product_category_id: 0,
+            product_brand_id: 0,
+          ),
+        )
+        .product_name;
+
+    Get.defaultDialog(
+      title: '등록 내용 확인',
+      titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _dialogRow('제품', selectedProductName),
+          _dialogRow('컬러', selectedColor.toString()),
+          _dialogRow('수량', '$selectedQty 개'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Get.back(); // 닫기
+          },
+          child: const Text('취소'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            // TODO: 실제 등록 API 호출
+            await insertProduct();
+            Get.back();
+          },
+          child: const Text('확인'),
+        ),
+      ],
+    );
+  }
+
+  Widget _dialogRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  // ================ style ===========================
+  // 타이틀
+  TextStyle _adminTitle() {
+    return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  }
+
+  // container
+  BoxDecoration containerStyle() {
+    return BoxDecoration(
+      color: const Color.fromARGB(255, 250, 238, 220),
+      border: Border.all(color: const Color.fromARGB(255, 177, 203, 214)),
+      borderRadius: BorderRadius.circular(6),
+    );
   }
 } // class

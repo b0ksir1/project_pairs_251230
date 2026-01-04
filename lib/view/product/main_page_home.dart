@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/util/global_data.dart';
-import 'package:project_pairs_251230/view/product/product_detail.dart';
 
 class MainPageHome extends StatefulWidget {
   const MainPageHome({super.key});
@@ -13,185 +11,142 @@ class MainPageHome extends StatefulWidget {
 }
 
 class _MainPageHomeState extends State<MainPageHome> {
-  // property
-  final _dataList = [];
   final urlPath = GlobalData.url;
+  final List _productList = [];
+
   @override
   void initState() {
     super.initState();
-    getJSONData();
+    getProductData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: 400,
-                      child: _dataList.isEmpty
-                          ? Center(child: Text('데이터가 비어있음'))
-                          : ClipRRect(
-                              borderRadius: BorderRadiusGeometry.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // =================== 메인 배너 ===================
+              SizedBox(
+                width: double.infinity,
+                height: 400,
+                child: _productList.isEmpty
+                    ? const Center(child: Text('데이터가 비어있음'))
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          '$urlPath/images/view/${_productList.first['product_id']}',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+              ),
 
-                              child: Image.network(
-                                '$urlPath/images/view/${_dataList[0]['product_id']}?t=${DateTime.now().millisecondsSinceEpoch}',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                    ),
-                    Positioned(
-                      bottom: 15,
-                      left: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '인기 상품',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            '인기상품을 만나보세요',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // 쇼핑하기 버튼 누르면 어디로 갈지...
-                              Get.to(
-                                ProductDetail(),
-                                arguments: 5      // 여기에다가 product_id 적으면 됨
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              side: BorderSide(width: 1, color: Colors.white),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 5,
-                              ),
-                            ),
-                            child: Text(
-                              '쇼핑 하기',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12),
+              const SizedBox(height: 24),
 
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Brand',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 130,
-                      child: Column(
-                        children: [
-                          Image.asset("images/dog1.png", width: 130),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                            child: Text(
-                              '러닝화, 테니스, 축구화 등',
-                              style: TextStyle(fontSize: 13),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              // =================== 타이틀 ===================
+              Text('Brands', style: _cardTitle()),
+              const SizedBox(height: 12),
 
-                SizedBox(height: 20),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'on & Tap 과 함께하는 2026년 새해 운동',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 130,
-                      child: Column(
-                        children: [
-                          Image.asset("images/dog2.png", width: 130),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                            child: Text(
-                              '러닝, 테니스, 축구화 등',
-                              style: TextStyle(fontSize: 13),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              // =================== 상품 그리드 ===================
+              _buildProductList(),
+
+              const SizedBox(height: 32),
+
+              Text('on & Tap 과 함께하는 2026년 새해 운동', style: _cardTitle()),
+            ],
           ),
         ),
       ),
     );
-  } // build
-  // ================ functions ==================
+  }
 
-  Future getJSONData() async {
-    var url = Uri.parse('$urlPath/product/select');
-    var response = await http.get(url);
+  // =================== widgets ===================
+  Widget _buildProductList() {
+    final displayList = _productList.length > 4
+        ? _productList.take(4).toList()
+        : _productList;
 
-    print(response.body);
+    final double cardWidth = (MediaQuery.of(context).size.width - 12 * 5) / 4;
+
+    return SizedBox(
+      height: cardWidth + 70, // 이미지 + 텍스트 높이
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal, // ✅ 가로 스크롤
+        itemCount: displayList.length,
+        itemBuilder: (context, index) {
+          final item = displayList[index];
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: SizedBox(
+              width: cardWidth, // ✅ 카드 고정 너비
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 이미지
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        '$urlPath/images/view/${item['product_id']}',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // 제품명
+                  Text(
+                    item['product_name'],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // 가격
+                  Text(
+                    '${item['product_price']}원',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // =================== API ===================
+  Future<void> getProductData() async {
+    final url = Uri.parse('$urlPath/product/select');
+    final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      _dataList.clear();
-      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
-      List results = dataConvertedData['results'];
-      _dataList.addAll(results);
-      setState(() {});
+      final decoded = json.decode(utf8.decode(response.bodyBytes));
+      final List results = decoded['results'];
+
+      setState(() {
+        _productList
+          ..clear()
+          ..addAll(results);
+      });
     } else {
-      print("error : ${response.statusCode}");
+      debugPrint('error: ${response.statusCode}');
     }
   }
 
-  void _showErrorSnackBar(String mag) {
-    Get.snackbar("WWWWWWWWWWWWWWWWWWWarning", mag);
+  // =================== style ===================
+  TextStyle _cardTitle() {
+    return const TextStyle(fontSize: 20, fontWeight: FontWeight.w700);
   }
-} // class
+}

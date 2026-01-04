@@ -118,7 +118,7 @@ class AdminSideBar extends StatelessWidget {
             text: '품의',
             selected: selectedMenu == SideMenu.approval,
             onTap: () {
-              Get.to(AdminApprovalRequest());
+              Get.to(AdminStockList());
             },
           ),
           AdminSideItem(
