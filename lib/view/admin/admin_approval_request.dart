@@ -23,10 +23,13 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
   final String _productUrl = "${GlobalData.url}/product/selectApprove";
   final String _employeeUrl = "${GlobalData.url}/employee/getNameWithApproval";
 
+  Message message = Message();
+
+
   late List<String> _productNameList = [];
   late List<ApproveProduct> _productList = [];
   String _selectedProductValue = "";
-  int _selectedProductId = 1;
+  int _selectedProductIndex = 1;
   int _employeeId = 1;
   int _qty = 1;
   ApproveEmployee? _employee;
@@ -83,11 +86,13 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
                     }).toList(),
                     onChanged: (value) {
                       _selectedProductValue = value!;
-                      _selectedProductId =
-                          _productList[_productNameList.indexOf(
-                                _selectedProductValue,
-                              )]
-                              .productId!;
+                      _selectedProductIndex =_productNameList.indexOf(
+                                _selectedProductValue);
+                      //     _productList[_productNameList.indexOf(
+                      //           _selectedProductValue)];
+                      // print(_productNameList.indexOf(
+                      //           _selectedProductValue,
+                      //         ));
                       setState(() {});
                     },
                   ),
@@ -123,12 +128,12 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
   Widget _buildCenter() {
     return Column(
       children: [
-        Text('상품명: ${_productList[_selectedProductId-1].productName}',style: _style(),),
-        Text('사이즈: ${_productList[_selectedProductId-1].productSize}',style: _style()),
-        Text('브랜드: ${_productList[_selectedProductId-1].productBrand}',style: _style()),
-        Text('종류  : ${_productList[_selectedProductId-1].productCategory}',style: _style()),
-        Text('가격  : ${_productList[_selectedProductId-1].productPrice}',style: _style()),
-        Text('재고  : ${_productList[_selectedProductId-1].qty}',style: _style()),
+        Text('상품명: ${_productList[_selectedProductIndex].productName}',style: _style(),),
+        Text('사이즈: ${_productList[_selectedProductIndex].productSize}',style: _style()),
+        Text('브랜드: ${_productList[_selectedProductIndex].productBrand}',style: _style()),
+        Text('종류  : ${_productList[_selectedProductIndex].productCategory}',style: _style()),
+        Text('가격  : ${_productList[_selectedProductIndex].productPrice}',style: _style()),
+        Text('재고  : ${_productList[_selectedProductIndex].qty}',style: _style()),
       ],
     );
   }
@@ -216,7 +221,7 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
     var url = Uri.parse(_productUrl);
     var response = await http.get(url);
 
-    // print(response.body);
+    print(response.body);
 
     if (response.statusCode == 200) {
       _productList.clear();
@@ -224,6 +229,7 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       List results = dataConvertedData['results'];
       for (var item in results) {
+        // print(item);
         ApproveProduct product = ApproveProduct.fromJson(item);
         _productList.add(product);
         _productNameList.add(
@@ -231,7 +237,7 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
         );
       }
       _selectedProductValue = _productNameList.first;
-      _selectedProductId = 1;
+      _selectedProductIndex = 1;
       setState(() {});
     } else {
       print("error : ${response.statusCode}");
@@ -263,21 +269,46 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
     var url = Uri.parse('${GlobalData.url}/approve/insert');
     var response = await http.post(
       url,
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
       body: {
-        'approve_product_id': _productList[_selectedProductId -1].productId.toString(),
+        'approve_product_id': _productList[_selectedProductIndex].productId.toString(),
         'approve_quantity': _qty.toString(),
         'approve_employee_id': _employeeId.toString(),
         'approve_senior_id': _employee!.senioremployeeId.toString(),
         'approve_director_id': _employee!.directorEmployeeId.toString(), // Form에 주소 필드가 없으므로 임시로 'N/A' 전송
       },
     );
+    // print(_productList[_selectedProductIndex].productId);
+    // print(_productList.length);
+    if (response.statusCode == 200) {
+      var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
 
+      if (dataConvertedJSON['results'] == 'OK') {
+        insertDate(dataConvertedJSON['approve_id']).then((value) {
+        },);
+        return true; // 삽입 성공
+      }
+    }
+    return false; // 삽입 실패
+  }
+
+  Future insertDate(int id) async {
+    var url = Uri.parse('${GlobalData.url}/approve_date/insert');
+    var response = await http.post(
+      url,
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: {
+        'approve_id':id.toString() ,
+        'status': "0"
+      },
+    );
+    // print(_productList[_selectedProductIndex].productId);
+    // print(_productList.length);
     if (response.statusCode == 200) {
       var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
       if (dataConvertedJSON['results'] == 'OK') {
-        Message message = Message();
-        message.successSnackBar('발주 성공', '발주가 정상 처리 되었답니다.'); 
         Get.back();
+        message.successSnackBar('품의 성공', '품의가 정상 처리 되었답니다.'); 
         return true; // 삽입 성공
       }
     }
