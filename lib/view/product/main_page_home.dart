@@ -9,7 +9,8 @@ class MainPageHome extends StatefulWidget {
   const MainPageHome({super.key});
 
   @override
-  State<MainPageHome> createState() => _MainPageHomeState();
+  State<MainPageHome> createState() =>
+      _MainPageHomeState();
 }
 
 class _MainPageHomeState extends State<MainPageHome> {
@@ -20,13 +21,18 @@ class _MainPageHomeState extends State<MainPageHome> {
   void initState() {
     super.initState();
     // getProductData();
-        getJSONData();
+    getJSONData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: const Color.fromARGB(
+        255,
+        255,
+        255,
+        255,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -37,25 +43,134 @@ class _MainPageHomeState extends State<MainPageHome> {
               SizedBox(
                 width: double.infinity,
                 height: 400,
-                child: _productList.isEmpty
-                
-                    ? const Center(child: Text('데이터가 비어있음'))
+                child: _dataList.isEmpty
+                    ? const Center(
+                        child: Text('데이터가 비어있음'),
+                      )
                     : ClipRRect(
-                      
-                        borderRadius: BorderRadius.circular(10),
-                        
-                        child: Image.network(
-                           '$urlPath/images/view/${_dataList[0]['product_id']}',
-            fit: BoxFit.cover,
+                        borderRadius:
+                            BorderRadius.circular(10),
+                        child: Stack(
+                          children: [
+                            // ================= 배너 =================
+                            Positioned.fill(
+                              child: Image.network(
+                                '$urlPath/images/view/${_dataList[0]['product_id']}',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+
+                            // ================= 그라데이션 =================
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment
+                                        .topCenter,
+                                    end: Alignment
+                                        .bottomCenter,
+                                    colors: [
+                                      const Color.fromARGB(
+                                        0,
+                                        255,
+                                        255,
+                                        255,
+                                      ),
+                                      const Color.fromARGB(
+                                        153,
+                                        0,
+                                        0,
+                                        0,
+                                      ).withAlpha(200),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            Positioned(
+                              left: 16,
+                              bottom: 16,
+                              right: 16,
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
+                                children: [
+                                  Text(
+                                    'NEW ARRIVAL',
+                                    style: TextStyle(
+                                      color: Colors.white
+                                          .withAlpha(200),
+                                      fontSize: 14,
+                                      fontWeight:
+                                          FontWeight.w500,
+                                    ),
+                                  ),
+
+                                  const Text(
+                                    '2026 SPRING COLLECTION',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 7,
+                                  ),
+
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          Colors.white,
+                                      foregroundColor:
+                                          Colors.black,
+                                      padding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal:
+                                                20,
+                                            vertical: 10,
+                                          ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(
+                                              20,
+                                            ),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () {
+                                      // TODO: 이동 처리
+                                    },
+                                    child: const Text(
+                                      '지금 보러가기',
+                                      style: TextStyle(
+                                        fontWeight:
+                                            FontWeight
+                                                .w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 30),
 
               // =================== 타이틀 ==================
-              Text('Brands', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
+              Text(
+                '브랜드별 구매하기',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
 
               // =================== 상품 그리드 ==============
               _brandAnchor(context),
@@ -72,142 +187,97 @@ class _MainPageHomeState extends State<MainPageHome> {
 
   // =================== widgets ===================
 
- Widget _brandAnchor(BuildContext context) {
-  return SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: Row(
-      children: [
-        _brandItem(context, "images/logo_nike.png", "NIKE", 1),
-        _brandItem(context, "images/logo_adidas.png", "ADIDAS", 2),
-        _brandItem(context, "images/logo_newbal.png", "NEW BALANCE", 3),
-        _brandItem(context, "images/logo_fila.png", "FILA", 4),
-        _brandItem(context, "images/logo_converse.png", "CONVERSE", 5),
-      ],
-    ),
-  );
-}
-Widget _brandItem(
-  BuildContext context,
-  String imagePath,
-  String title,
-  int brandId,
-) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        padding: EdgeInsets.zero,
-        elevation: 0,
-      ),
-      onPressed: () {
-        // 👉 나중에 브랜드 페이지 연결
-        // Get.to(() => BrandProductPage(
-        //   brandId: brandId,
-        //   brandName: title,
-        // ));
-        debugPrint('브랜드 클릭: $title ($brandId)');
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+  Widget _brandAnchor(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
         children: [
-          SizedBox(
-            width: 100,
-            height: 100,
-            child: Image.asset(
-              imagePath,
-              fit: BoxFit.contain,
-            ),
+          _brandItem(
+            context,
+            "images/logo_nike.png",
+            "NIKE",
+            1,
           ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
+          _brandItem(
+            context,
+            "images/logo_adidas.png",
+            "ADIDAS",
+            2,
+          ),
+          _brandItem(
+            context,
+            "images/logo_newbal.png",
+            "NEW BALANCE",
+            3,
+          ),
+          _brandItem(
+            context,
+            "images/logo_fila.png",
+            "FILA",
+            4,
+          ),
+          _brandItem(
+            context,
+            "images/logo_converse.png",
+            "CONVERSE",
+            5,
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-
-
-
-  Widget _buildProductList() {
-    final displayList = _productList.length > 4
-        ? _productList.take(4).toList()
-        : _productList;
-
-    final double cardWidth = (MediaQuery.of(context).size.width - 12 * 5) / 4;
-
-    return SizedBox(
-      height: cardWidth + 70, // 이미지 + 텍스트 높이
-      child: GestureDetector(
-        onTap: () => Get.to(
-          ProductDetail(),
-          arguments: 5
+  Widget _brandItem(
+    BuildContext context,
+    String imagePath,
+    String title,
+    int brandId,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          padding: EdgeInsets.zero,
+          elevation: 0,
         ),
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal, // ✅ 가로 스크롤
-          itemCount: displayList.length,
-          itemBuilder: (context, index) {
-            final item = displayList[index];
-        
-            return Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: SizedBox(
-                width: cardWidth, // ✅ 카드 고정 너비
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 이미지
-                    AspectRatio(
-                      aspectRatio: 1,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          '$urlPath/images/view/${item['product_id']}',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-        
-                    // 제품명
-                    Text(
-                      item['product_name'],
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-        
-                    const SizedBox(height: 4),
-        
-                    // 가격
-                    Text(
-                      '${item['product_price']}원',
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                  ],
-                ),
+        onPressed: () {
+          // 👉 나중에 브랜드 페이지 연결
+          // Get.to(() => BrandProductPage(
+          //   brandId: brandId,
+          //   brandName: title,
+          // ));
+          debugPrint('브랜드 클릭: $title ($brandId)');
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 100,
+              height: 100,
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.contain,
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   // =================== API ===================
-  
+
   Future getJSONData() async {
     var url = Uri.parse('$urlPath/product/select');
     var response = await http.get(url);
@@ -216,7 +286,9 @@ Widget _brandItem(
 
     if (response.statusCode == 200) {
       _dataList.clear();
-      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      var dataConvertedData = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
       List results = dataConvertedData['results'];
       _dataList.addAll(results);
       setState(() {});

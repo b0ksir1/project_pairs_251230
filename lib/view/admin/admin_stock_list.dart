@@ -31,6 +31,7 @@ class _AdminStockListState extends State<AdminStockList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 241, 250, 253),
       body: Row(
         children: [
           AdminSideBar(selectedMenu: SideMenu.stock, onMenuSelected: (menu) {}),
