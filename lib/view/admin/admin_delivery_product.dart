@@ -51,12 +51,18 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '대리점 발송',
-                    style: _adminTitle(),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                        child: Icon(Icons.view_in_ar_rounded, size: 30),
+                      ),
+                      Text('대리점 발송', style: _adminTitle()),
+                    ],
                   ),
                   SizedBox(height: 8),
                   _buildSearch(),
