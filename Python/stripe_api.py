@@ -3,12 +3,12 @@ import os
 import stripe
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from dotenv import load_dotenv                          # .env형식으로 secretkey관리
+# from dotenv import load_dotenv                          # .env형식으로 secretkey관리
 
 router = APIRouter()
 
-load_dotenv()
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+# load_dotenv()
+# stripe.api_key = "sk_test_51SlPLl2Ypir8wPmXE6tJqonLkRKTQfhluchG1F2jYn57wqRMyjAUI6l3i2zEo1RDIalumysZPx9beC0vpzdg1E8z00wGFrWVXm"
 
 class CreatePIReq(BaseModel):
     amount: int          # 예: 229000 (원)

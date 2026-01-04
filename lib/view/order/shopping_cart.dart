@@ -336,7 +336,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                             () => PaymentOptions(),
                             arguments: {
                               "customerId": customerId,
-                              "items": items
+                              "items": items        // items : [{...} , {...}]
                             },
                           );
                         },

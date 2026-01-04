@@ -46,8 +46,8 @@ class _PaymentOptionsState extends State<PaymentOptions> {
   late String customer_address; // 고객 주소 변수
   late int customer_id;
   int total_product_price = 0;
-  late final Map<String, dynamic> value;
-  late final List<Map<String, dynamic>> items;
+  late final Map<String, dynamic> value;          // 한 상품처리
+  late final List<Map<String, dynamic>> items;    // 장바구나 상품처리
   int countOrder = 0;       // 주문오더 count
   Message message = Message();
 
@@ -64,9 +64,9 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     super.initState();
     value = Get.arguments as Map<String, dynamic>;
     customer_id = value['customerId'] as int;
-    items = (value['items'] as List)
+    items = (value['items'] as List)          // "items" : [{...}, {...}, {...}]
         .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+        .toList();        // value가 뭐가 넘어올지모르니 다시 정의
     customerData = [];
     storeData = [];
     _init();
@@ -81,8 +81,8 @@ class _PaymentOptionsState extends State<PaymentOptions> {
 
   @override
   Widget build(BuildContext context) {
-    // 합계 금액 계산 (CartController에서 price는 int로 저장됨)
-    final int totalPrice = items.fold<int>(
+    // 합계 금액 계산 (dart의 누적함 : fold<T>(초기값, (누적값, 현재요소) => 새누적값))
+    final int totalPrice = items.fold<int>(   
       0,
       (sum, it) => sum + (it["price"] as int) * (it["qty"] as int),
     );

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/util/global_data.dart';
+import 'package:project_pairs_251230/view/product/product_detail.dart';
 
 class MainPageHome extends StatefulWidget {
   const MainPageHome({super.key});
@@ -73,55 +75,61 @@ class _MainPageHomeState extends State<MainPageHome> {
 
     return SizedBox(
       height: cardWidth + 70, // 이미지 + 텍스트 높이
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal, // ✅ 가로 스크롤
-        itemCount: displayList.length,
-        itemBuilder: (context, index) {
-          final item = displayList[index];
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: SizedBox(
-              width: cardWidth, // ✅ 카드 고정 너비
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 이미지
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        '$urlPath/images/view/${item['product_id']}',
-                        fit: BoxFit.cover,
+      child: GestureDetector(
+        onTap: () => Get.to(
+          ProductDetail(),
+          arguments: 5
+        ),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal, // ✅ 가로 스크롤
+          itemCount: displayList.length,
+          itemBuilder: (context, index) {
+            final item = displayList[index];
+        
+            return Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: SizedBox(
+                width: cardWidth, // ✅ 카드 고정 너비
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 이미지
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          '$urlPath/images/view/${item['product_id']}',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // 제품명
-                  Text(
-                    item['product_name'],
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 6),
+        
+                    // 제품명
+                    Text(
+                      item['product_name'],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // 가격
-                  Text(
-                    '${item['product_price']}원',
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                ],
+        
+                    const SizedBox(height: 4),
+        
+                    // 가격
+                    Text(
+                      '${item['product_price']}원',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
