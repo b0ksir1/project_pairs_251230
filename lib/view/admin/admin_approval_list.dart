@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_pairs_251230/model/approval.dart';
-import 'package:project_pairs_251230/model/approve_product.dart';
-import 'package:project_pairs_251230/util/approve_status.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/util/side_menu.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_request.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
+
 class AdminApprovalList extends StatefulWidget {
   const AdminApprovalList({super.key});
 
@@ -19,7 +18,7 @@ class AdminApprovalList extends StatefulWidget {
 }
 
 class _AdminApprovalListState extends State<AdminApprovalList> {
- // === Property ===
+  // === Property ===
   final String _imageUrl = "${GlobalData.url}/images/view";
   final String _stockUrl = "${GlobalData.url}/stock/selectQty";
   final String _approveUrl = "${GlobalData.url}/approve/select";
@@ -29,7 +28,7 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
   late List<Approval> _approveList;
 
   int _employeeId = 1;
-  int _employeeRole = 1;
+  int _employeeRole = 0;
 
   @override
   void initState() {
@@ -51,39 +50,42 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
           ),
 
           Expanded(
-            child: SizedBox(
-              width:  double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Text(
-                      '품의 리스트',
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                        child: Icon(Icons.approval_outlined, size: 30),
                       ),
-                    ),
-                    SizedBox(height: 8),
-                        ElevatedButton(onPressed: () {
-                          Get.to(AdminApprovalRequest())!.then((value) {
-                            getApprovalData();
-                          },);
-                        }, child: Text('새 품의')),
-                    SizedBox(height: 8),
-                    _buildHead(),
-                    SizedBox(height: 8),
-                    Expanded(child: _approveList.isEmpty
+                      Text('품의 관리', style: _adminTitle()),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Get.to(AdminApprovalRequest())!.then((value) {
+                        getApprovalData();
+                      });
+                    },
+                    child: Text('새 품의'),
+                  ),
+                  SizedBox(height: 8),
+                  _buildHead(),
+                  SizedBox(height: 8),
+                  Expanded(
+                    child: _approveList.isEmpty
                         ? Center(child: Text('품의 내역이 없습니다.'))
                         : ListView.builder(
                             itemCount: _approveList.length,
                             itemBuilder: (context, index) =>
                                 _buildApprovalCard(index),
-                          ),)
-                    
-                  ],
-                ),
+                          ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -94,8 +96,11 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
 
   // === Widgets ===
 
-  Widget _buildApprovalCard(int index)
-  {
+  TextStyle _adminTitle() {
+    return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  }
+
+  Widget _buildApprovalCard(int index) {
     return GestureDetector(
       onTap: () {
         showApprovalDialog(index);
@@ -104,33 +109,59 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
         child: Row(
           children: [
             SizedBox(
-            width: MediaQuery.of(context).size.width * 0.15,
-            child: Center(child: Text(_approveList[index].approvalId.toString(), style: headerStyle()))
-          ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.15,
-            child: Center(child: Text('${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개', style: headerStyle()))
-          ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.15,
-            child: Center(child: Text(_approveList[index].approvalemplyeeName, style: headerStyle()))
-          ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.15,
-            child: Center(child: Text(_approveList[index].date == "" ?"":_approveList[index].date.toString().substring(0,10), style: headerStyle()))
-          ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.15,
-            child: Center(child: Text(returnApprovalStatusCode(_approveList[index].status), style: headerStyle()))
-          )
+              width: MediaQuery.of(context).size.width * 0.15,
+              child: Center(
+                child: Text(
+                  _approveList[index].approvalId.toString(),
+                  style: headerStyle(),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.15,
+              child: Center(
+                child: Text(
+                  '${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개',
+                  style: headerStyle(),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.15,
+              child: Center(
+                child: Text(
+                  _approveList[index].approvalemplyeeName,
+                  style: headerStyle(),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.15,
+              child: Center(
+                child: Text(
+                  _approveList[index].date == ""
+                      ? ""
+                      : _approveList[index].date.toString().substring(0, 10),
+                  style: headerStyle(),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.15,
+              child: Center(
+                child: Text(
+                  returnApprovalStatusCode(_approveList[index].status),
+                  style: headerStyle(),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  void showApprovalDialog(int index)
-  {
+  void showApprovalDialog(int index) {
     Get.defaultDialog(
       title: '품의 확인',
 
@@ -138,81 +169,91 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
       actions: [
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('품의자: ${_approveList[index].approvalemplyeeName}'),
-          Text('팀장  : ${_approveList[index].approvalemplyeeSeniorName}'),
-          Text('임원: ${_approveList[index].approvalemplyeeDirectorName}'),
-          Text('품의 일자: ${_approveList[index].date.substring(0,10)}'),
-          Text('상태: ${returnApprovalStatusCode(_approveList[index].status)}'),
-          Text('품의 내용: ${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개 주문 품의 합니다.'),
-      
-        _employeeRole == 0
-          ? employeeButton(index)
-          :  seniorButton(index)
-      ],)]
-    );
-  }
+          children: [
+            Text('품의자: ${_approveList[index].approvalemplyeeName}'),
+            Text('팀장  : ${_approveList[index].approvalemplyeeSeniorName}'),
+            Text('임원: ${_approveList[index].approvalemplyeeDirectorName}'),
+            Text('품의 일자: ${_approveList[index].date.substring(0, 10)}'),
+            Text('상태: ${returnApprovalStatusCode(_approveList[index].status)}'),
+            Text(
+              '품의 내용: ${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개 주문 품의 합니다.',
+            ),
 
-  Widget employeeButton(int index)
-  {
-    return Row(
-      children: [
-        ElevatedButton(onPressed: () {
-          showCancelApprovalDialog(index);
-        }, child: Text('품의 취소'),),  
-        ElevatedButton(onPressed: () {
-          Get.back();
-        }, child: Text('확인'),),  
+            _employeeRole == 0 ? employeeButton(index) : seniorButton(index),
+          ],
+        ),
       ],
     );
   }
 
-Widget seniorButton(int index)
-  {
+  Widget employeeButton(int index) {
+    return Row(
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            showCancelApprovalDialog(index);
+          },
+          child: Text('품의 취소'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Get.back();
+          },
+          child: Text('확인'),
+        ),
+      ],
+    );
+  }
+
+  Widget seniorButton(int index) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(onPressed: () {
-          if(_approveList[index].status == _employeeRole -1)
-          {
-            updateApprovalData(index, false, 8);
-          }
-          else
-          {
-            message.errorSnackBar('실패', '지금은 품의를 반려 할 수 없습니다.');
-          }
-        }, child: Text('품의 반려'),),  
-        ElevatedButton(onPressed: () {
-          if(_approveList[index].status == _employeeRole -1)
-          {
-            updateApprovalData(index, true, _approveList[index].status+1);
-          }
-          else
-          {
-            message.errorSnackBar('실패', '지금은 품의를 승인 할 수 없습니다.');
-          }
-        }, child: Text('품의 승인'),),  
+        ElevatedButton(
+          onPressed: () {
+            if (_approveList[index].status == _employeeRole - 1) {
+              updateApprovalData(index, false, 8);
+            } else {
+              message.errorSnackBar('실패', '지금은 품의를 반려 할 수 없습니다.');
+            }
+          },
+          child: Text('품의 반려'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_approveList[index].status == _employeeRole - 1) {
+              updateApprovalData(index, true, _approveList[index].status + 1);
+            } else {
+              message.errorSnackBar('실패', '지금은 품의를 승인 할 수 없습니다.');
+            }
+          },
+          child: Text('품의 승인'),
+        ),
       ],
     );
   }
 
-
-  void showCancelApprovalDialog(int index)
-  {
+  void showCancelApprovalDialog(int index) {
     Get.defaultDialog(
       title: '품의 취소',
-      middleText: '${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개 주문 품의를 취소하시겠습니까?',
+      middleText:
+          '${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개 주문 품의를 취소하시겠습니까?',
       actions: [
-        
-        ElevatedButton(onPressed: () {
+        ElevatedButton(
+          onPressed: () {
             Get.back();
-        }, child: Text('아니오')),
-        ElevatedButton(onPressed: () {
-          Get.back();
-          Get.back();
-          updateApprovalData(index, false, 7);
-        },  child: Text('예')),
-      ]
+          },
+          child: Text('아니오'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Get.back();
+            Get.back();
+            updateApprovalData(index, false, 7);
+          },
+          child: Text('예'),
+        ),
+      ],
     );
   }
 
@@ -232,12 +273,12 @@ Widget seniorButton(int index)
   //       title: '품의 확인',
   //       middleText: '${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개 주문 품의 합니다.',
   //       actions: [
-          
+
   //         ElevatedButton(onPressed: () {
   //           _employeeRole == 0
   //           ? showCancelApprovalDialog(index)
   //           : updateApprovalData(index, false);
-            
+
   //         }, child: Text(cancelText)),
   //         ElevatedButton(onPressed: () {
   //           possible? updateApprovalData(index, true):Get.back();
@@ -254,23 +295,23 @@ Widget seniorButton(int index)
       children: [
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
-          child: Center(child: Text('품의 번호', style: headerStyle()))
+          child: Center(child: Text('품의 번호', style: headerStyle())),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
-          child: Center(child: Text('품의 내용', style: headerStyle()))
+          child: Center(child: Text('품의 내용', style: headerStyle())),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
-          child: Center(child: Text('품의자 ', style: headerStyle()))
+          child: Center(child: Text('품의자 ', style: headerStyle())),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
-          child: Center(child: Text('품의일 ', style: headerStyle()))
+          child: Center(child: Text('품의일 ', style: headerStyle())),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
-          child: Center(child: Text('품의 상태', style: headerStyle()))
+          child: Center(child: Text('품의 상태', style: headerStyle())),
         ),
       ],
     );
@@ -281,18 +322,14 @@ Widget seniorButton(int index)
       fontWeight: FontWeight.bold,
       fontSize: 15,
       color: Colors.black,
-
     );
   }
 
   TextStyle bodyStyle() {
-    return TextStyle(
-      fontSize: 12,
-      color: Colors.black,
-    );
+    return TextStyle(fontSize: 12, color: Colors.black);
   }
 
-  // === Functions === 
+  // === Functions ===
 
   // void requestApproval()
   // {
@@ -333,12 +370,10 @@ Widget seniorButton(int index)
   //               ),
   //     ]);
   // }
-  
-  String returnApprovalStatusCode(int code)
-  {
-    String status ="";
-    switch(code)
-    {
+
+  String returnApprovalStatusCode(int code) {
+    String status = "";
+    switch (code) {
       case 0:
         status = "팀장 승인 대기 중";
       case 1:
@@ -360,6 +395,7 @@ Widget seniorButton(int index)
     }
     return status;
   }
+
   Future<int> getStockData(int productId) async {
     var url = Uri.parse('$_stockUrl/$productId');
     var response = await http.get(url);
@@ -367,11 +403,9 @@ Widget seniorButton(int index)
     print(response.body);
 
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(
-        utf8.decode(response.bodyBytes),
-      );
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       // print(dataConvertedData['results']);
-      
+
       return dataConvertedData['results'].first;
       // for (var item in results) {
       //   Stock stock = Stock(
@@ -388,73 +422,64 @@ Widget seniorButton(int index)
     }
   } // getStockData
 
-  Future updateApprovalData(int index, bool confirm, int status) async{
+  Future updateApprovalData(int index, bool confirm, int status) async {
     // String urlLink = '';
 
     //   _employeeRole == 1
-    //   ? confirm 
+    //   ? confirm
     //     ? urlLink = '${GlobalData.url}/approve/confirmSenior'
     //     : urlLink = '${GlobalData.url}/approve/rejectSenior'
     //   : _employeeRole == 2
-    //     ? confirm  
+    //     ? confirm
     //       ? urlLink = '${GlobalData.url}/approve/confirmDirector'
     //       : urlLink = '${GlobalData.url}/approve/rejectDirector'
-    //     :  urlLink = '${GlobalData.url}/approve/cancel'; 
-    
+    //     :  urlLink = '${GlobalData.url}/approve/cancel';
+
     var url = Uri.parse('${GlobalData.url}/approve/updateStatus');
     print(url);
     var response = await http.post(
       url,
       body: {
         'approve_id': _approveList[index].approvalId.toString(),
-        'status': status.toString()
+        'status': status.toString(),
       },
     );
     if (response.statusCode == 200) {
       var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
       if (dataConvertedJSON['results'] == 'OK') {
-
         String msg = '';
         _employeeId == 0
-        ? msg = '정상적으로 취소 되었습니다.'
-        : confirm 
-          ? msg = '품의 승인이 완료 되었습니다'
-          : msg = '품의 반려가 완료 되었습니다';
-            
+            ? msg = '정상적으로 취소 되었습니다.'
+            : confirm
+            ? msg = '품의 승인이 완료 되었습니다'
+            : msg = '품의 반려가 완료 되었습니다';
+
         insertDate(_approveList[index].approvalId!, status, msg);
         return true; // 삽입 성공
-      }
-      else
-      {
-      }
+      } else {}
     }
   }
 
-   Future insertDate(int id, int status, String msg) async {
+  Future insertDate(int id, int status, String msg) async {
     var url = Uri.parse('${GlobalData.url}/approve_date/insert');
     var response = await http.post(
       url,
       headers: {"Content-Type": "application/x-www-form-urlencoded"},
-      body: {
-        'approve_id':id.toString() ,
-        'status': status.toString()
-      },
+      body: {'approve_id': id.toString(), 'status': status.toString()},
     );
     if (response.statusCode == 200) {
       var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
       if (dataConvertedJSON['results'] == 'OK') {
         Get.back();
-        message.successSnackBar('품의 성공', '품의가 정상 처리 되었답니다.'); 
-        
+        message.successSnackBar('품의 성공', '품의가 정상 처리 되었답니다.');
+
         getApprovalData();
-       
+
         return true; // 삽입 성공
       }
     }
     return false; // 삽입 실패
   }
-
-
 
   Future getApprovalData() async {
     var url = Uri.parse('$_approveUrl/$_employeeId');
@@ -465,29 +490,27 @@ Widget seniorButton(int index)
     if (response.statusCode == 200) {
       _approveList.clear();
       _productNameList.clear();
-      var dataConvertedData = json.decode(
-        utf8.decode(response.bodyBytes),
-      );
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       List results = dataConvertedData['results'];
       print('$results / len : ${results.length}');
 
       for (var item in results) {
         Approval product = Approval(
-          approvalId:  item['approve_id'],
-          approvalProductID: item['approve_product_id'], 
-          approvalProductName: item['product_name'], 
-          approvalProductQty: item['approve_quantity'], 
-          employeeId: item['approve_employee_id'], 
-          seniorEmployeeId: item['approve_senior_id'], 
-          directorEmployeeId: item['approve_director_id'], 
-          approvalemplyeeName: item['approve_employee_name'], 
-          approvalemplyeeSeniorName: item['approve_senior_name'], 
-          approvalemplyeeDirectorName: item['approve_director_name'], 
+          approvalId: item['approve_id'],
+          approvalProductID: item['approve_product_id'],
+          approvalProductName: item['product_name'],
+          approvalProductQty: item['approve_quantity'],
+          employeeId: item['approve_employee_id'],
+          seniorEmployeeId: item['approve_senior_id'],
+          directorEmployeeId: item['approve_director_id'],
+          approvalemplyeeName: item['approve_employee_name'],
+          approvalemplyeeSeniorName: item['approve_senior_name'],
+          approvalemplyeeDirectorName: item['approve_director_name'],
           status: item['approve_status'],
           date: item['date'],
-          );
+        );
         _approveList.add(product);
-      //   _productNameList.add("${product.productName}/ 색상: ${product.productColor}/ 사이즈: ${product.productSize} ");
+        //   _productNameList.add("${product.productName}/ 색상: ${product.productColor}/ 사이즈: ${product.productSize} ");
       }
       // _selectedProductValue = _productNameList.first;
       // _selectedProductId = _productList.first.productId!;

@@ -29,6 +29,7 @@ import 'package:project_pairs_251230/view/order/wish_list.dart';
 import 'package:project_pairs_251230/view/payment/payment_map.dart';
 import 'package:project_pairs_251230/view/product/product_detail.dart';
 import 'package:project_pairs_251230/view/user/my_page.dart';
+import 'package:project_pairs_251230/vm/splash_screen.dart';
 
 class PageChart extends StatefulWidget {
   const PageChart({super.key});
@@ -141,10 +142,8 @@ class _PageChartState extends State<PageChart> {
                           child: Text('위시 리스트'),
                         ),
                         TextButton(
-                          onPressed: () {
-                            //
-                          },
-                          child: Text('결제 완료 화면'),
+                          onPressed: () => Get.to(SplashScreen()),
+                          child: Text('스플래쉬 화면'),
                         ),
                       ],
                     ),
