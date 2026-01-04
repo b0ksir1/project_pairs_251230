@@ -43,6 +43,8 @@ class _AdminDeliveryProductState extends State<AdminDeliveryProduct> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 241, 250, 253),
+      
       body: Row(
         children: [
           AdminSideBar(

@@ -42,6 +42,8 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 241, 250, 253),
+      
       body: Row(
         children: [
           AdminSideBar(
