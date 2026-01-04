@@ -488,7 +488,9 @@ class _PaymentOptionsState extends State<PaymentOptions> {
       if (res.statusCode == 200) {
         await updateStockAction(productId, qty);
         if (countOrder == items.length) {
-          message.showDialog("주문이 완료되었습니다.", "주문이 정상적으로 접수되었습니다.");          
+          // await deleteCartAll(customer_id);
+          message.showDialog("주문이 완료되었습니다.", "주문이 정상적으로 접수되었습니다.");
+          // Navigator.pop(context);      
         }
       } else {
         message.errorSnackBar("죄송합니다. 주문에 실패했습니다.", "주문에 실패했습니다. 다시 시도해 보세요.");
@@ -617,4 +619,16 @@ class _PaymentOptionsState extends State<PaymentOptions> {
     final random = Random().nextInt(90000) + 10000;
     return 'ORD-$date-$random';
   }
+
+  // Future<void> deleteCartAll(int customer_id) async {
+  //   // 카트에있는거 삭제
+  //  var url = Uri.parse("$urlPath/deleteAll/$customer_id");
+  //  var response = await http.get(url);
+  //  var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+  //  var result = dataConvertedJSON['results'];
+  //  if (result != 'OK') {
+  //    message.errorSnackBar("문제발생", "삭제중 문제가 발생했습니다.");
+  //  }
+  //   setState(() {});
+  // }
 } // class
