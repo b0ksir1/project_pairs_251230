@@ -77,7 +77,9 @@ class _OrderHistoryState extends State<OrderHistory> {
               ),
               Container(
                 color: Colors.grey[200],
-                child: Text(getOrderStatus(_ordersList[index].ordersStatus!)),
+                child: Text(
+                  getOrderStatus(_ordersList[index].ordersStatus!),
+                ),
               ),
             ],
           ),
@@ -109,10 +111,31 @@ class _OrderHistoryState extends State<OrderHistory> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  Get.to(OrderDetail());
-                  // Get.to(OrderDetail());
+                  final o = _ordersList[index];
+
+                  Get.to(
+                    () => const OrderDetail(),
+                    arguments: {
+                      // OrderDetail에서 쓰는 키 이름으로 맞춰서 전달
+                      "orders_id": o.ordersId,
+                      "orders_customer_id": o.ordersCustomerId,
+                      "orders_status": o.ordersStatus,
+                      "orders_product_id": o.ordersProductId,
+                      "orders_number": o.ordersNumber,
+                      "orders_quantity": o.ordersQty,
+                      "orders_payment": o.ordersPayment,
+                      "orders_date": o.ordersDate,
+
+                      "product_name": o.productName,
+                      "product_price": o.productPrice,
+                      "size_name": o.sizeName,
+                      "store_name": o.storeName,
+
+                      "store_id": o.ordersStoreId,
+                    },
+                  );
                 },
-                child: Text('주문 상세'),
+                child: const Text('주문 상세'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -134,7 +157,7 @@ class _OrderHistoryState extends State<OrderHistory> {
         width: MediaQuery.widthOf(context) * 0.35,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-        color:Colors.grey[200],
+          color: Colors.grey[200],
         ),
         height: 36,
         child: Center(
@@ -144,7 +167,10 @@ class _OrderHistoryState extends State<OrderHistory> {
             iconDisabledColor: Theme.of(context).colorScheme.onError,
             value: _selectedTab,
             items: _tabs.map((e) {
-              return DropdownMenuItem<String>(value: e, child: Text(e));
+              return DropdownMenuItem<String>(
+                value: e,
+                child: Text(e),
+              );
             }).toList(),
             onChanged: (String? v) {
               if (v == null) return;
@@ -179,9 +205,11 @@ class _OrderHistoryState extends State<OrderHistory> {
               child: TextField(
                 controller: _searchController,
                 onSubmitted: (value) {
-                  _selectedIndex == 0 
-                  ? getOrderDataByKeyword()
-                  : getOrderDataByStatusKeyword(_selectedIndex-1);
+                  _selectedIndex == 0
+                      ? getOrderDataByKeyword()
+                      : getOrderDataByStatusKeyword(
+                          _selectedIndex - 1,
+                        );
                 },
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search),
@@ -217,7 +245,9 @@ class _OrderHistoryState extends State<OrderHistory> {
     var response = await http.get(url);
     print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      var dataConvertedData = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
       List results = dataConvertedData['results'];
       makeOrderList(results);
     } else {
@@ -232,7 +262,9 @@ class _OrderHistoryState extends State<OrderHistory> {
     var response = await http.get(url);
     print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      var dataConvertedData = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
       List results = dataConvertedData['results'];
       makeOrderList(results);
     } else {
@@ -247,7 +279,9 @@ class _OrderHistoryState extends State<OrderHistory> {
     var response = await http.get(url);
     print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      var dataConvertedData = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
       List results = dataConvertedData['results'];
       makeOrderList(results);
     } else {
@@ -262,7 +296,9 @@ class _OrderHistoryState extends State<OrderHistory> {
     var response = await http.get(url);
     print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      var dataConvertedData = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
       List results = dataConvertedData['results'];
       makeOrderList(results);
     } else {
@@ -275,18 +311,27 @@ class _OrderHistoryState extends State<OrderHistory> {
     for (var item in results) {
       Orders order = Orders(
         ordersId: item['orders_id'],
-        ordersNumber: item['orders_number'],
-        ordersQty: item['orders_quantity'],
-        productPrice: item['product_price'],
-        ordersPayment: item['orders_payment'],
-        ordersDate: item['orders_date'],
+        ordersCustomerId: item['orders_customer_id'],
         ordersStatus: item['orders_status'],
-        storeName: item['store_name'],
-        productName: item['product_name'],
-        brandName: item['brand_name'],
-        sizeName: item['size_name'],
-        categoryName: item['category_name'],
-        colorName: item['color_name'],
+        ordersProductId:
+            item['orders_product_id'] ?? item['product_id'],
+        ordersStoreId:
+            item['orders_store_id'] ??
+            item['store_id'] ??
+            item['store_store_id'],
+
+        ordersNumber: item['orders_number'].toString(),
+        ordersQty: item['orders_quantity'] ?? 0,
+        productPrice: item['product_price'] ?? 0,
+        ordersPayment: item['orders_payment'].toString(),
+        ordersDate: item['orders_date'].toString(),
+
+        storeName: item['store_name'].toString(),
+        productName: item['product_name'].toString(),
+        brandName: item['brand_name'].toString(),
+        sizeName: item['size_name'].toString(),
+        categoryName: item['category_name'].toString(),
+        colorName: item['color_name'].toString(),
       );
 
       _ordersList.add(order);
