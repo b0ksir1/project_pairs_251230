@@ -108,3 +108,13 @@ async def delete(customer_id:int):
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"}  
+
+@router.get('/select/{customer_id}')
+async def select_by_id(customer_id: int):
+    conn = connect()
+    curs = conn.cursor(pymysql.cursors.DictCursor) # 필드명을 키로 받기 위해 DictCursor 사용
+    sql = "select * from customer where customer_id = %s"
+    curs.execute(sql, (customer_id,))
+    result = curs.fetchone()
+    conn.close()
+    return result
