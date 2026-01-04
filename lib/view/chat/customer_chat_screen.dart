@@ -17,63 +17,101 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   bool isHas = false;
 
-  // String _id = Get.arguments ?? "__";
-
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
-    
-    // _messageList = values;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('채팅')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: const Text(
+          '채팅 상담',
+          style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.75,
+          Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('chatting')
                   .doc(customerID)
                   .snapshots(),
-                builder: (context, snapshot) {
+              builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: Colors.black));
                 } else {
-
                   final documents = snapshot.data!;
-
-final List dialogs = documents['dialog'] ?? [];
-    // return Center(); 
-    return ListView(
-      children: dialogs.map((e) => buildItemWidget(e)).toList(),
-    );
+                  final List dialogs = documents['dialog'] ?? [];
+                  return ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: dialogs.map((e) => buildItemWidget(e)).toList(),
+                  );
                 }
               },
             ),
           ),
-
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  decoration: InputDecoration(labelText: "메시지 입력"),
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        hintText: "메시지를 입력하세요",
+                        hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              ElevatedButton(onPressed: () => sendMessage(), child: Text('보내기'))
-            ],
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_controller.text.trim().isNotEmpty) {
+                      sendMessage();
+                      _controller.clear();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    minimumSize: const Size(64, 44),
+                  ),
+                  child: const Text('보내기', style: TextStyle(fontWeight: FontWeight.bold)),
+                )
+              ],
+            ),
           ),
         ],
       ),
     );
-  } // build
-
-  // === Widget ===
+  }
 
   Widget buildItemWidget(dynamic d) {
     final msg = ChatMessage(
@@ -81,93 +119,57 @@ final List dialogs = documents['dialog'] ?? [];
       msg: d['message'],
       date: d['date'],
     );
-    bool isMe = msg.talker == 'customer' ? true : false;
-    return Row(
-      mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
+    bool isMe = msg.talker == 'customer';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: [
+          Container(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isMe ? Colors.yellowAccent : Colors.grey,
-              borderRadius: BorderRadius.circular(10),
+              color: isMe ? Colors.black : const Color(0xFFF1F1F1),
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(16),
+                topRight: const Radius.circular(16),
+                bottomLeft: Radius.circular(isMe ? 16 : 0),
+                bottomRight: Radius.circular(isMe ? 0 : 16),
+              ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                msg.msg,
-                style: TextStyle(
-                  color: isMe ? Colors.black : Colors.white,
-                  fontSize: 20,
-                ),
+            child: Text(
+              msg.msg,
+              style: TextStyle(
+                color: isMe ? Colors.white : Colors.black,
+                fontSize: 14,
+                height: 1.4,
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  // === Functions ===
-
-  Widget showDialog(DocumentSnapshot documents)
-  {
+  Widget showDialog(DocumentSnapshot documents) {
     final List dialogs = documents['dialog'] ?? [];
-    // return Center(); 
     return ListView(
       children: dialogs.map((e) => buildItemWidget(e)).toList(),
     );
-                  
   }
 
-  // Future openDialog() async
-  // {
-  //   final docRef = FirebaseFirestore.instance
-  //   .collection('chatting')
-  //   .doc(customerID);
-
-  //   final docSnap = await docRef.get();
-
-  //   if (docSnap.exists) {
-  //     isHas = true;
-  //   } else {
-
-
-  //     final ref =  await FirebaseFirestore.instance.collection("chatting").doc(customerID).set({
-  //       'customerId' : customerID,
-  //       'startAt' : DateTime.now().toString(),
-
-  //           'dialog': FieldValue.arrayUnion(
-  //             [
-  //              {'date': DateTime.now().toString(),
-  //         'message': _controller.text.trim(),
-  //         'talker': 'customer'} 
-  //           ]
-  //           )
-  //     })!.then((value) {
-
-
-        
-  //       isHas = true;
-  //     },);
-  //   }
-
-    
-   
-  // }
-
-  Future sendMessage() async{
+  Future sendMessage() async {
     await FirebaseFirestore.instance
-    .collection("chatting")
-    .doc(customerID)
-    .update({
-    'dialog': FieldValue.arrayUnion([
-      {
-        'date': DateTime.now().toString(),
-        'message': _controller.text.trim(),
-        'talker': 'customer',
-      }
-    ])
-  });
+        .collection("chatting")
+        .doc(customerID)
+        .update({
+      'dialog': FieldValue.arrayUnion([
+        {
+          'date': DateTime.now().toString(),
+          'message': _controller.text.trim(),
+          'talker': 'customer',
+        }
+      ])
+    });
   }
 }
