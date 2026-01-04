@@ -48,6 +48,32 @@ async def view(images_id:int):
     except Exception as e:
         print("Error ", e)
         return {"results" : "Error"}    
+    
+@router.get('/viewOne/{images_product_id}')
+async def viewOne(images_product_id:int):
+    try:
+        conn = connect()
+        curs = conn.cursor()
+        curs.execute("""
+           select image from images
+            where images_product_id = %s
+            order by images_id asc
+            limit 1"""
+                    ,(images_product_id,))
+        row = curs.fetchone()
+        conn.close()
+        if row and row[0]:
+            return Response(
+                content = row[0],
+                media_type='image/jpeg',
+                headers={"Cache-Control":"no-cachem no-store, must-revalidate"}
+            )
+        else:
+            return {"results" : "No Image Found"}
+    except Exception as e:
+        print("Error ", e)
+        return {"results" : "Error"}   
+
 
 @router.post('/insert')
 async def insert(images_product_id: int = Form(...), file: UploadFile = File(...)):
