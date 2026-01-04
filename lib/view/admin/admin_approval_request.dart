@@ -43,6 +43,8 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 241, 250, 253),
+      
       body: Row(
         children: [
           AdminSideBar(
@@ -51,71 +53,78 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
           ),
 
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '상품 발주 품의',
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                        child: Icon(Icons.request_page_outlined, size: 30),
+                        ),
+                        Text('상품 발주 품의', style: _adminTitle()),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 40,
+                    child: DropdownButton(
+                      dropdownColor: Theme.of(context).colorScheme.onPrimary,
+                      iconEnabledColor: Theme.of(context).colorScheme.error,
+                      iconDisabledColor: Theme.of(context).colorScheme.onError,
+                      value: _selectedProductValue,
+                      icon: Icon(Icons.keyboard_arrow_down),
+                      items: _productNameList.map((String list) {
+                        return DropdownMenuItem(
+                          value: list,
+                          child: Text(
+                            list,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        _selectedProductValue = value!;
+                        _selectedProductIndex =_productNameList.indexOf(
+                                  _selectedProductValue);
+                        //     _productList[_productNameList.indexOf(
+                        //           _selectedProductValue)];
+                        // print(_productNameList.indexOf(
+                        //           _selectedProductValue,
+                        //         ));
+                        setState(() {});
+                      },
                     ),
                   ),
-                ),
-                SizedBox(
-                  height: 40,
-                  child: DropdownButton(
-                    dropdownColor: Theme.of(context).colorScheme.onPrimary,
-                    iconEnabledColor: Theme.of(context).colorScheme.error,
-                    iconDisabledColor: Theme.of(context).colorScheme.onError,
-                    value: _selectedProductValue,
-                    icon: Icon(Icons.keyboard_arrow_down),
-                    items: _productNameList.map((String list) {
-                      return DropdownMenuItem(
-                        value: list,
-                        child: Text(
-                          list,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      _selectedProductValue = value!;
-                      _selectedProductIndex =_productNameList.indexOf(
-                                _selectedProductValue);
-                      //     _productList[_productNameList.indexOf(
-                      //           _selectedProductValue)];
-                      // print(_productNameList.indexOf(
-                      //           _selectedProductValue,
-                      //         ));
-                      setState(() {});
-                    },
+                  SizedBox(height: 20,),
+                                  _productList.isEmpty ? Center() : _buildCenter(),
+                  SizedBox(height: 20,),
+                                  _employee == null ? Center() : _buildEmployee(),
+                  SizedBox(height: 20,),
+                                  _buildQtySelector(context),
+                  SizedBox(height: 20,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(onPressed: () {
+                      Get.back();
+                    }, child: Text('취소')),
                   ),
-                ),
-                SizedBox(height: 20,),
-                                _productList.isEmpty ? Center() : _buildCenter(),
-                SizedBox(height: 20,),
-                                _employee == null ? Center() : _buildEmployee(),
-                SizedBox(height: 20,),
-                                _buildQtySelector(context),
-                SizedBox(height: 20,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                ElevatedButton(onPressed: () {
-                  Get.back();
-                }, child: Text('취소')),
-                ElevatedButton(onPressed: () {
-                  insertApproval();
-                }, child: Text('확인'))
-              ],)
-
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(onPressed: () {
+                      insertApproval();
+                    }, child: Text('확인')),
+                  )
+                ],)
+              
+                ],
+              ),
             ),
           ),
         ],
@@ -146,6 +155,10 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
         Text('임원  : ${_employee!.directorEmployeeName}',style: _style()),
       ],
     );
+  }
+
+   TextStyle _adminTitle() {
+    return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   }
 
   Widget _buildQtySelector(BuildContext context) {
@@ -247,7 +260,7 @@ class _AdminApprovalRequestState extends State<AdminApprovalRequest> {
   Future getEmployeeData() async {
     var url = Uri.parse('$_employeeUrl/$_employeeId');
     var response = await http.get(url);
-
+      print(response.body );
 
     if (response.statusCode == 200) {
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
