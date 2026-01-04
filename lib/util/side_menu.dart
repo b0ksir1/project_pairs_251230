@@ -10,5 +10,5 @@ enum SideMenu {
   // obtain, // 수주 페이지
   board, // 게시판
   approval, // 품의
-  settings, // 설정
+  // settings, // 설정
 }

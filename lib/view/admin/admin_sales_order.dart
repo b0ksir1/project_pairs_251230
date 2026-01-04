@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:project_pairs_251230/model/approval.dart';
 import 'package:project_pairs_251230/model/stock.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
@@ -25,12 +26,14 @@ class _AdminSalesOrderState extends State<AdminSalesOrder> {
 
   late List<Stock> _stockList;
 
+  late List<Approval> _approveList;
   @override
   void initState() {
     super.initState();
     _stockList = [];
 
     getProductData();
+    getApprovalList();
   }
 
   @override
@@ -167,7 +170,45 @@ class _AdminSalesOrderState extends State<AdminSalesOrder> {
   }
 
   // === Functions ===
+  Future getApprovalList() async{
+    var url = Uri.parse('${GlobalData.url}/selectPurchased');
+    var response = await http.get(url);
 
+    print(url);
+    print(response.body);
+
+
+    if (response.statusCode == 200) {
+      _approveList.clear();
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      List results = dataConvertedData['results'];
+      print('$results / len : ${results.length}');
+
+      // for (var item in results) {
+      //   Approval product = Approval(
+      //     approvalId: item['approve_id'],
+      //     approvalProductID: item['approve_product_id'],
+      //     approvalProductName: item['product_name'],
+      //     approvalProductQty: item['approve_quantity'],
+      //     employeeId: item['approve_employee_id'],
+      //     seniorEmployeeId: item['approve_senior_id'],
+      //     directorEmployeeId: item['approve_director_id'],
+      //     approvalemplyeeName: item['approve_employee_name'],
+      //     approvalemplyeeSeniorName: item['approve_senior_name'],
+      //     approvalemplyeeDirectorName: item['approve_director_name'],
+      //     status: item['approve_status'],
+      //     date: item['date'],
+      //   );
+      //   _approveList.add(product);
+      //   //   _productNameList.add("${product.productName}/ 색상: ${product.productColor}/ 사이즈: ${product.productSize} ");
+      // }
+      // _selectedProductValue = _productNameList.first;
+      // _selectedProductId = _productList.first.productId!;
+      setState(() {});
+    } else {
+      print("error : ${response.statusCode}");
+    }
+  }
   Future getProductData() async {
     var url = Uri.parse(stockSelectAllUrl);
     var response = await http.get(url);

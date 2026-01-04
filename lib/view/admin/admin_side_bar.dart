@@ -122,14 +122,14 @@ class AdminSideBar extends StatelessWidget {
               Get.to(AdminApprovalList());
             },
           ),
-          AdminSideItem(
-            icon: Icons.settings_outlined,
-            text: '설정',
-            selected: selectedMenu == SideMenu.settings,
-            onTap: () {
-              // Get.to(());
-            },
-          ),
+          // AdminSideItem(
+          //   icon: Icons.settings_outlined,
+          //   text: '설정',
+          //   selected: selectedMenu == SideMenu.settings,
+          //   onTap: () {
+          //     // Get.to(());
+          //   },
+          // ),
         ],
       ),
     );

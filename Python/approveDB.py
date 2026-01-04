@@ -26,9 +26,6 @@ async def select():
         approve_product_id, 
         approve_quantity,
         approve_employee_id, 
-        approve_date, 
-        approve_senior_assign_date,
-        approve_director_assign_date,
         from approve
          
     '''
@@ -40,9 +37,6 @@ async def select():
                'approve_product_id' : row[1], 
                'approve_quantity' : row[2],
                'approve_employee_id' : row[3], 
-               'approve_date' : row[4],
-               'approve_senior_assign_date' : row[5],
-               'approve_director_assign_date' : row[6],
                } for row in rows]
     return {'results' : result}
 
@@ -96,6 +90,34 @@ async def select(employee_id:int):
                } for row in rows]
     return {'results' : result}
 
+@router.get('/selectPurchased')
+async def select():
+    conn = connect()
+    curs = conn.cursor()    
+    curs.execute(
+        '''
+        select a.approve_id, 
+        a.approve_product_id, 
+        p.product_name, 
+        a.approve_quantity,
+        a.approve_status
+        from approve as a
+            inner join product as p
+                on p.product_id = a.approve_product_id
+        where a.approve_status in(3,4,5,6)
+        '''
+    )
+    rows = curs.fetchall()
+    conn.close()
+
+    result = [{'approve_id' : row[0], 
+               'approve_product_id' : row[1], 
+               'product_name' : row[2], 
+               'approve_quantity' : row[3],
+               'approve_status' : row[4],
+               } for row in rows]
+    return {'results' : result}
+
 @router.post('/insert')
 async def insert(approve_product_id:int = Form(...), 
                  approve_quantity:int = Form(...),
@@ -114,7 +136,7 @@ async def insert(approve_product_id:int = Form(...),
         approve_director_id,
         approve_quantity,
         approve_status
-                ) values (%s, %s, %s, %s, %s,0 )
+                ) values (%s, %s, %s, %s, %s,1)
         """
         curs.execute(sql, (
             approve_employee_id, 

@@ -28,7 +28,7 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
   late List<Approval> _approveList;
 
   int _employeeId = 1;
-  int _employeeRole = 0;
+  int _employeeRole =3;
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
       body: Row(
         children: [
           AdminSideBar(
-            selectedMenu: SideMenu.procure,
+            selectedMenu: SideMenu.approval,
             onMenuSelected: (menu) {},
           ),
 
@@ -181,7 +181,7 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
               '품의 내용: ${_approveList[index].approvalProductName} ${_approveList[index].approvalProductQty}개 주문 품의 합니다.',
             ),
 
-            _employeeRole == 0 ? employeeButton(index) : seniorButton(index),
+            _employeeRole == 1 ? employeeButton(index) : seniorButton(index),
           ],
         ),
       ],
@@ -190,18 +190,25 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
 
   Widget employeeButton(int index) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
-          onPressed: () {
-            showCancelApprovalDialog(index);
-          },
-          child: Text('품의 취소'),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () {
+              showCancelApprovalDialog(index);
+            },
+            child: Text('품의 취소'),
+          ),
         ),
-        ElevatedButton(
-          onPressed: () {
-            Get.back();
-          },
-          child: Text('확인'),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () {
+              Get.back();
+            },
+            child: Text('확인'),
+          ),
         ),
       ],
     );
@@ -211,25 +218,31 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
-          onPressed: () {
-            if (_approveList[index].status == _employeeRole - 1) {
-              updateApprovalData(index, false, 8);
-            } else {
-              message.errorSnackBar('실패', '지금은 품의를 반려 할 수 없습니다.');
-            }
-          },
-          child: Text('품의 반려'),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () {
+              if (_approveList[index].status == _employeeRole - 1) {
+                updateApprovalData(index, false, 9);
+              } else {
+                message.errorSnackBar('실패', '지금은 품의를 반려 할 수 없습니다.');
+              }
+            },
+            child: Text('품의 반려'),
+          ),
         ),
-        ElevatedButton(
-          onPressed: () {
-            if (_approveList[index].status == _employeeRole - 1) {
-              updateApprovalData(index, true, _approveList[index].status + 1);
-            } else {
-              message.errorSnackBar('실패', '지금은 품의를 승인 할 수 없습니다.');
-            }
-          },
-          child: Text('품의 승인'),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () {
+              if (_approveList[index].status == _employeeRole - 1) {
+                updateApprovalData(index, true, _approveList[index].status + 1);
+              } else {
+                message.errorSnackBar('실패', '지금은 품의를 승인 할 수 없습니다.');
+              }
+            },
+            child: Text('품의 승인'),
+          ),
         ),
       ],
     );
@@ -251,7 +264,7 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
           onPressed: () {
             Get.back();
             Get.back();
-            updateApprovalData(index, false, 7);
+            updateApprovalData(index, false, 8);
           },
           child: Text('예'),
         ),
@@ -376,23 +389,23 @@ class _AdminApprovalListState extends State<AdminApprovalList> {
   String returnApprovalStatusCode(int code) {
     String status = "";
     switch (code) {
-      case 0:
-        status = "팀장 승인 대기 중";
       case 1:
-        status = "임원 승인 대기 중";
+        status = "팀장 승인 대기 중";
       case 2:
-        status = "발주 승인 완료";
+        status = "임원 승인 대기 중";
       case 3:
-        status = "발주 중";
+        status = "발주 승인 완료";
       case 4:
-        status = "수주 대기 중";
+        status = "발주 중";
       case 5:
-        status = "수주 확인 대기 중";
+        status = "수주 대기 중";
       case 6:
-        status = "완료";
+        status = "수주 확인 대기 중";
       case 7:
-        status = "취소";
+        status = "완료";
       case 8:
+        status = "취소";
+      case 9:
         status = "반려";
     }
     return status;

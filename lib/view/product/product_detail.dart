@@ -41,7 +41,7 @@ class _ProductDetailState extends State<ProductDetail> {
   int _qty = 1;
   late List<Product> list;
   int product_id = Get.arguments ?? 1;
-  int customer_id = 1;
+  int customer_id = GlobalData.customerId ?? 1;
 
   @override
   void initState() {

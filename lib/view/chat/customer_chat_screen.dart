@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/model/chat_message.dart';
+import 'package:project_pairs_251230/util/global_data.dart';
 
 class CustomerChatScreen extends StatefulWidget {
   const CustomerChatScreen({super.key});
@@ -11,7 +12,7 @@ class CustomerChatScreen extends StatefulWidget {
 }
 
 class _CustomerChatScreenState extends State<CustomerChatScreen> {
-  String customerID = "customer01";
+  int? customerID = GlobalData.customerId ?? 1;
 
   late TextEditingController _controller;
 
@@ -46,7 +47,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('chatting')
-                  .doc(customerID)
+                  .doc(customerID.toString())
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -161,7 +162,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
   Future sendMessage() async {
     await FirebaseFirestore.instance
         .collection("chatting")
-        .doc(customerID)
+        .doc(customerID.toString())
         .update({
       'dialog': FieldValue.arrayUnion([
         {

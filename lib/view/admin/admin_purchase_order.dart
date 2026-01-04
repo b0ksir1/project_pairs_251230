@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:project_pairs_251230/model/approval.dart';
+import 'package:project_pairs_251230/model/approve_purchase.dart';
 import 'package:project_pairs_251230/model/product.dart';
 import 'package:project_pairs_251230/model/stock.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
+import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
 import 'package:project_pairs_251230/util/side_menu.dart';
 import 'package:http/http.dart' as http;
@@ -26,13 +29,16 @@ class _AdminPurchaseOrderState extends State<AdminPurchaseOrder> {
   final List<int> quantityItems = [10, 20, 30, 50, 100];
   String imageUrl = "${GlobalData.url}/images/view";
   String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
-  late List<Stock> _stockList;
   int selectedProduct = 0;
   int selectedQty = 10;
   final Map<String, int> colorMap = {'Red': 1, 'White': 2, 'Black': 3};
   String selectedColor = 'Red';
   List<Product> _productList = [];
   int? selectedProductId;
+
+  late List<ApprovePurchase> _approveList = [];
+
+  Message message = Message();
 
   // === product insert용 state ===
   int selectedColorId = 1;
@@ -46,15 +52,16 @@ class _AdminPurchaseOrderState extends State<AdminPurchaseOrder> {
   @override
   void initState() {
     super.initState();
-    _stockList = [];
-    getProductData();
+    // getProductData();
     getProductList();
+    getApprovalList();
   }
 
   // === Property ===
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 241, 250, 253),
       body: Row(
         children: [
           AdminSideBar(
@@ -62,32 +69,80 @@ class _AdminPurchaseOrderState extends State<AdminPurchaseOrder> {
             onMenuSelected: (menu) {},
           ),
           Expanded(
-            child: _stockList.isEmpty
-                ? Center(child: Text('데이터가 비어있음'))
-                : Padding(
-                    padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                              child: Icon(
-                                Icons.add_shopping_cart_sharp,
-                                size: 30,
-                              ),
-                            ),
-                            Text('발주 신청 페이지', style: _adminTitle()),
-                          ],
-                        ),
-                        SizedBox(height: 10),
-                        _insertContainer(),
-                        SizedBox(height: 35),
-                        _buildHead(),
-                      ],
-                    ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                        child: Icon(Icons.add_shopping_cart_sharp, size: 30),
+                      ),
+                      Text('발주 신청 페이지', style: _adminTitle()),
+                    ],
                   ),
+                  // SizedBox(height: 10),
+                  // _insertContainer(),
+                  SizedBox(height: 35),
+                  _buildHead(),
+
+                  SizedBox(height: 8),
+                  _approveList.isEmpty
+                      ? Center(child: Text('발주 내역이 없습니다'))
+                      : Expanded(
+                          child: ListView.builder(
+                            itemCount: _approveList.length,
+                            itemBuilder: (context, index) {
+                              return Card(
+
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        cell(
+                                          child: Text(_approveList[index].approvalId.toString(), style: headerStyle()),
+                                          flex: 1,
+                                          alignment: Alignment.center,
+                                        ),
+                                        cell(
+                                          child: Text(_approveList[index].approvalProductName, style: headerStyle()),
+                                          flex: 2,
+                                          alignment: Alignment.center,
+                                        ),
+                                        cell(
+                                          child: Text(_approveList[index].approvalProductQty.toString(), style: headerStyle()),
+                                          alignment: Alignment.center,
+                                          flex: 2,
+                                        ),
+                                        cell(
+                                          child: Text(
+                                            returnApprovalStatusCode(_approveList[index].status),
+                                            style: headerStyle(),
+                                          ),
+                                          alignment: Alignment.center,
+                                          flex: 2,
+                                        ),
+                                      ],
+                                    ),
+                                        _approveList[index].status == 6
+                                        ? ElevatedButton(onPressed: () {
+                                    
+                                          updateApprovalData(index, 7);
+                                          insertQty(_approveList[index].approvalProductID, _approveList[index].approvalProductQty);
+                                    
+                                        }, child: Text('수주 확인'))
+                                        : Center()
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -95,128 +150,6 @@ class _AdminPurchaseOrderState extends State<AdminPurchaseOrder> {
   } // build
 
   // ======================= Widget =================================
-  Widget _insertContainer() {
-    return Container(
-      width: double.infinity,
-      height: 80,
-      decoration: containerStyle(),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 아이콘
-          const SizedBox(width: 8),
-
-          // 제목
-          const Text(
-            '발주 등록',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-
-          const SizedBox(width: 24),
-
-          // 입력 영역
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('제품 이름'),
-                    DropdownButton<int>(
-                      value: selectedProductId,
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      items: _productList.map((product) {
-                        return DropdownMenuItem<int>(
-                          value: product.product_id,
-                          child: Text(product.product_name),
-                        );
-                      }).toList(),
-                      onChanged: (int? value) {
-                        setState(() {
-                          selectedProductId = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('제품 색상'),
-                    DropdownButton<String>(
-                      value: selectedColor,
-                      items: colorMap.entries.map((entry) {
-                        return DropdownMenuItem<String>(
-                          value: entry.key,
-                          child: Text(entry.key),
-                        );
-                      }).toList(),
-                      onChanged: (String? value) {
-                        setState(() {
-                          selectedColor = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('수량'),
-                    DropdownButton<int>(
-                      value: selectedQty,
-                      items: quantityItems.map((int value) {
-                        return DropdownMenuItem<int>(
-                          value: value,
-                          child: Text('$value 개'),
-                        );
-                      }).toList(),
-                      onChanged: (int? value) {
-                        setState(() {
-                          selectedQty = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          SizedBox(width: 16),
-
-          // 등록 버튼
-          ElevatedButton(
-            onPressed: () {
-              // 상품 등록 로직
-              _showInsertList();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-              // side: const BorderSide(
-              //   color: Color(0xFFB1CBD6),
-              //   width: 1,
-              // ),
-              // elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            child: const Text(
-              '상품 등록',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // 제품 목차 타이틀
   Widget _buildHead() {
@@ -228,28 +161,22 @@ class _AdminPurchaseOrderState extends State<AdminPurchaseOrder> {
       child: Row(
         children: [
           cell(
-            child: Text('NO', style: headerStyle()),
+            child: Text('발주 번호', style: headerStyle()),
             flex: 1,
             alignment: Alignment.center,
           ),
           cell(
-            child: Text('발주', style: headerStyle()),
+            child: Text('상품명', style: headerStyle()),
             flex: 2,
             alignment: Alignment.center,
           ),
-          cell(
-            child: Text('상품명', style: headerStyle()),
-            alignment: Alignment.center,
-            flex: 3,
-          ),
-
           cell(
             child: Text('상품 갯수', style: headerStyle()),
             alignment: Alignment.center,
             flex: 2,
           ),
           cell(
-            child: Text('발주 확인', style: headerStyle()),
+            child: Text('발주 상태', style: headerStyle()),
             alignment: Alignment.center,
             flex: 2,
           ),
@@ -283,6 +210,76 @@ class _AdminPurchaseOrderState extends State<AdminPurchaseOrder> {
 
   // === Functions ===
 
+  Future updateApprovalData(int index, int status) async {
+
+    var url = Uri.parse('${GlobalData.url}/approve/updateStatus');
+    print(url);
+    var response = await http.post(
+      url,
+      body: {
+        'approve_id': _approveList[index].approvalId.toString(),
+        'status': status.toString(),
+      },
+    );
+    if (response.statusCode == 200) {
+      var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+      if (dataConvertedJSON['results'] == 'OK') {
+        String msg = '';
+        insertDate(_approveList[index].approvalId!, status, msg);
+        return true; // 삽입 성공
+      } else {}
+    }
+  }
+
+  Future insertQty(int id, int qty)async{
+    
+      var stockUrl = Uri.parse("${GlobalData.url}/stock/update");
+      var stockRes = await http.post(
+        stockUrl,
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: {
+          "stock_quantity":
+              (-qty)
+                  .toString(),
+          "stock_product_id": id.toString(),
+        },
+      );
+
+      if (stockRes.statusCode != 200) {
+        throw Exception("추가 실패: ${stockRes.statusCode}");
+      } else {
+        var body = json.decode(stockRes.body);
+        if ((body["results"] ?? "") != "OK") {
+          throw Exception("추가 실패: ${stockRes.body}");
+        } else {
+          setState(() {
+            
+          });
+          message.successSnackBar('수주 완료', '정상적으로 상품이 도착했어요!');
+        }
+      }
+  }
+
+  Future insertDate(int id, int status, String msg) async {
+    var url = Uri.parse('${GlobalData.url}/approve_date/insert');
+    var response = await http.post(
+      url,
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: {'approve_id': id.toString(), 'status': status.toString()},
+    );
+    if (response.statusCode == 200) {
+      var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+      if (dataConvertedJSON['results'] == 'OK') {
+        // Get.back();
+        // message.successSnackBar('품의 성공', '품의가 정상 처리 되었답니다.');
+
+        return true; // 삽입 성공
+      }
+    }
+    return false; // 삽입 실패
+  }
+
+
   Future<void> getProductList() async {
     final url = Uri.parse('${GlobalData.url}/product/select');
     final response = await http.get(url);
@@ -302,100 +299,114 @@ class _AdminPurchaseOrderState extends State<AdminPurchaseOrder> {
     }
   }
 
-  Future<void> insertProduct() async {
-    final url = Uri.parse('${GlobalData.url}/product/insert');
-    final int selectedColorId = colorMap[selectedColor]!;
-    final request = http.MultipartRequest('POST', url)
-      ..fields['product_color_id'] = selectedColorId.toString()
-      ..fields['product_size_id'] = selectedSizeId.toString()
-      ..fields['product_brand_id'] = selectedBrandId.toString()
-      ..fields['product_category_id'] = selectedCategoryId.toString()
-      ..fields['product_name'] = productName
-      ..fields['product_description'] = productDescription
-      ..fields['product_price'] = productPrice.toString()
-      ..fields['product_id'] = selectedProductId.toString();
 
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-    final decoded = json.decode(responseBody);
-
-    if (decoded['result'] == "OK") {
-      final productId = decoded['product_id'];
-
-      // 👉 여기서 stock insert 호출 가능
-      // 👉 목록 다시 불러오기
-      await getProductData();
+String returnApprovalStatusCode(int code) {
+    String status = "";
+    switch (code) {
+      case 1:
+        status = "팀장 승인 대기 중";
+      case 2:
+        status = "임원 승인 대기 중";
+      case 3:
+        status = "발주 승인 완료";
+      case 4:
+        status = "발주 중";
+      case 5:
+        status = "수주 대기 중";
+      case 6:
+        status = "수주 확인 대기 중";
+      case 7:
+        status = "완료";
+      case 8:
+        status = "취소";
+      case 9:
+        status = "반려";
     }
+    return status;
   }
+  
 
-  Future getProductData() async {
-    var url = Uri.parse(stockSelectAllUrl);
+  Future getApprovalList() async {
+    var url = Uri.parse('${GlobalData.url}/approve/selectPurchased');
     var response = await http.get(url);
 
     if (response.statusCode == 200) {
-      _stockList.clear();
+      _approveList.clear();
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
       List results = dataConvertedData['results'];
-      for (var item in results) {
-        Stock stock = Stock(
-          stockId: item["s.stock_id"],
-          productId: item["s.stock_product_id"],
-          productName: item["p.product_name"],
-          productQty: item["s.stock_quantity"],
-        );
-        _stockList.add(stock);
+      print('$results / len : ${results.length}');
+
+      for(var item in results)
+      {
+        ApprovePurchase purchase = ApprovePurchase(
+          approvalId: item['approve_id'],
+          approvalProductID: item['approve_product_id'], 
+          approvalProductName: item['product_name'], 
+          approvalProductQty: item['approve_quantity'], 
+          status: item['approve_status']);
+
+          _approveList.add(purchase);
       }
+
       setState(() {});
+
+      for(int i = 0; i < _approveList.length; i++)
+      {
+        if(_approveList[i].status  < 6)
+        {
+          updateApprovalData(i, 6);
+        }
+      }
     } else {
       print("error : ${response.statusCode}");
     }
   }
 
-  _showInsertList() {
-    final selectedProductName = _productList
-        .firstWhere(
-          (p) => p.product_id == selectedProductId,
-          orElse: () => Product(
-            product_name: '선택 안됨',
-            product_price: 0,
-            product_description: '0',
-            product_color_id: 0,
-            product_size_id: 0,
-            product_category_id: 0,
-            product_brand_id: 0,
-          ),
-        )
-        .product_name;
+  // _showInsertList() {
+  //   final selectedProductName = _productList
+  //       .firstWhere(
+  //         (p) => p.product_id == selectedProductId,
+  //         orElse: () => Product(
+  //           product_name: '선택 안됨',
+  //           product_price: 0,
+  //           product_description: '0',
+  //           product_color_id: 0,
+  //           product_size_id: 0,
+  //           product_category_id: 0,
+  //           product_brand_id: 0,
+  //         ),
+  //       )
+  //       .product_name;
 
-    Get.defaultDialog(
-      title: '등록 내용 확인',
-      titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _dialogRow('제품', selectedProductName),
-          _dialogRow('컬러', selectedColor.toString()),
-          _dialogRow('수량', '$selectedQty 개'),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Get.back(); // 닫기
-          },
-          child: const Text('취소'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            // TODO: 실제 등록 API 호출
-            await insertProduct();
-            Get.back();
-          },
-          child: const Text('확인'),
-        ),
-      ],
-    );
-  }
+  //   Get.defaultDialog(
+  //     title: '등록 내용 확인',
+  //     titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //     content: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         _dialogRow('제품', selectedProductName),
+  //         _dialogRow('컬러', selectedColor.toString()),
+  //         _dialogRow('수량', '$selectedQty 개'),
+  //       ],
+  //     ),
+  //     actions: [
+  //       TextButton(
+  //         onPressed: () {
+  //           Get.back(); // 닫기
+  //         },
+  //         child: const Text('취소'),
+  //       ),
+  //       ElevatedButton(
+  //         onPressed: () async {
+  //           // TODO: 실제 등록 API 호출
+  //           await insertProduct();
+  //           Get.back();
+  //         },
+  //         child: const Text('확인'),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _dialogRow(String label, String value) {
     return Padding(
