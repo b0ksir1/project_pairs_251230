@@ -76,7 +76,7 @@ class AdminSideBar extends StatelessWidget {
           ),
           AdminSideItem(
             icon: Icons.inventory,
-            text: '재고 확인',
+            text: '재고 관리',
             selected: selectedMenu == SideMenu.stock,
             onTap: () {
               Get.to(AdminStockList());

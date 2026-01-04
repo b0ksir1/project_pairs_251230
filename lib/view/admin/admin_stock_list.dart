@@ -28,7 +28,6 @@ class _AdminStockListState extends State<AdminStockList> {
     getProductData();
   }
 
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,18 +35,27 @@ class _AdminStockListState extends State<AdminStockList> {
         children: [
           AdminSideBar(selectedMenu: SideMenu.stock, onMenuSelected: (menu) {}),
           Expanded(
-            child: Column(
-              children: [
-                 Text(
-                    '재고 관리',
-                    style: _adminTitle(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(30, 80, 30, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                        child: Icon(Icons.inventory, size: 30),
+                      ),
+                      Text('재고 관리', style: _adminTitle()),
+                    ],
                   ),
                   SizedBox(height: 8),
-                   _buildHead(), 
+                  _buildHead(),
                   SizedBox(height: 8),
-                    _buildListView()
-              ],
-            )  
+                  _buildListView(),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -59,7 +67,6 @@ class _AdminStockListState extends State<AdminStockList> {
   TextStyle _adminTitle() {
     return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   }
-
 
   Widget _buildListView() {
     return Expanded(
@@ -73,23 +80,35 @@ class _AdminStockListState extends State<AdminStockList> {
                 SizedBox(width: 15),
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.15,
-                  child: Text(_stockList[index].productName, style: bodyStyle())
+                  child: Center(
+                    child: Text(
+                      _stockList[index].productName,
+                      style: bodyStyle(),
+                    ),
+                  ),
                 ),
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.3,
-                  child: Image.network(
-                            '${GlobalData.url}/images/viewOne/${_stockList[index].productId}?t=${DateTime.now().millisecondsSinceEpoch}',
-                          width: 100,
-                          height: 100,
-                          )
+                  child: Center(
+                    child: Image.network(
+                      '${GlobalData.url}/images/viewOne/${_stockList[index].productId}?t=${DateTime.now().millisecondsSinceEpoch}',
+                      width: 100,
+                      height: 100,
+                    ),
+                  ),
                 ),
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text(_stockList[index].productQty.toString(), style: bodyStyle())
+                  child: Center(
+                    child: Text(
+                      _stockList[index].productQty.toString(),
+                      style: bodyStyle(),
+                    ),
+                  ),
                 ),
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.1,
-                  child: Text('상품 상태', style: bodyStyle())
+                  child: Center(child: Text('상품 상태', style: bodyStyle())),
                 ),
               ],
             ),
@@ -98,33 +117,31 @@ class _AdminStockListState extends State<AdminStockList> {
       ),
     );
   }
+
   Widget _buildHead() {
     return Row(
-       mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         SizedBox(width: 15),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.15,
-          child: Text('상품명', style: headerStyle())
+          child: Center(child: Text('상품명', style: headerStyle())),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.3,
-          child: Text('상품 이미지', style: headerStyle())
+          child: Center(child: Text('상품 이미지', style: headerStyle())),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 갯수', style: headerStyle())
+          child: Center(child: Text('상품 갯수', style: headerStyle())),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.1,
-          child: Text('상품 상태', style: headerStyle())
+          child: Center(child: Text('상품 상태', style: headerStyle())),
         ),
-        
       ],
     );
   }
-
-  
 
   TextStyle headerStyle() {
     return TextStyle(
@@ -135,10 +152,7 @@ class _AdminStockListState extends State<AdminStockList> {
   }
 
   TextStyle bodyStyle() {
-    return TextStyle(
-      fontSize: 12,
-      color: Colors.black,
-    );
+    return TextStyle(fontSize: 12, color: Colors.black);
   }
 
   // === Functions ===
