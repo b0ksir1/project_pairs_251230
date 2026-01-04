@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/model/orders.dart';
@@ -15,16 +14,11 @@ class OrderHistory extends StatefulWidget {
 }
 
 class _OrderHistoryState extends State<OrderHistory> {
-  // === Property ===
   final List<String> _tabs = ['전체', '요청', '준비중', '픽업완료', '취소'];
-
   String _selectedTab = "전체";
   int _selectedIndex = 0;
-
   late TextEditingController _searchController;
-
-  int customer_id = 1;
-
+  int customer_id = GlobalData.customerId ?? 1;
   List<Orders> _ordersList = [];
 
   @override
@@ -34,116 +28,196 @@ class _OrderHistoryState extends State<OrderHistory> {
     getOrderData();
   }
 
+  void _showOrderNumberDialog(String number) {
+    Get.defaultDialog(
+      title: "주문 정보",
+      titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      backgroundColor: Colors.white,
+      radius: 20,
+      contentPadding: const EdgeInsets.all(24),
+      content: Column(
+        children: [
+          const Text("주문번호", style: TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 12),
+          SelectableText(
+            number,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          ),
+        ],
+      ),
+      confirm: SizedBox(
+        width: 120,
+        height: 45,
+        child: ElevatedButton(
+          onPressed: () => Get.back(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          ),
+          child: const Text("확인", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('주문 내역')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: const Text(
+          '주문 내역',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+      ),
       body: Column(
         children: [
           _searchWidget(),
-          const SizedBox(height: 16),
           _selectCategory(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Expanded(
             child: _ordersList.isEmpty
-                ? Center(child: Text('데이터가 없습니다'))
+                ? const Center(child: Text('주문 내역이 없습니다.', style: TextStyle(color: Colors.grey)))
                 : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _ordersList.length,
-                    itemBuilder: (context, index) {
-                      return _orderCard(index);
-                    },
+                    itemBuilder: (context, index) => _orderCard(index),
                   ),
           ),
         ],
       ),
     );
-  } // build
-
-  // === Widgets ===
+  }
 
   Widget _orderCard(int index) {
-    return Card(
+    final o = _ordersList[index];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF1F1F1)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_ordersList[index].ordersDate),
-                  Text(_ordersList[index].ordersNumber.toString()),
+                  Text(o.ordersDate, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  const SizedBox(height: 6),
+                  InkWell(
+                    onTap: () => _showOrderNumberDialog(o.ordersNumber),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F8F8),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: const Color(0xFFEEEEEE)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.receipt_long_outlined, size: 12, color: Colors.black54),
+                          SizedBox(width: 4),
+                          Text('주문번호 확인', style: TextStyle(color: Colors.black87, fontSize: 11, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
               Container(
-                color: Colors.grey[200],
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(30),
+                ),
                 child: Text(
-                  getOrderStatus(_ordersList[index].ordersStatus!),
+                  getOrderStatus(o.ordersStatus!),
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 20),
           Row(
             children: [
-              Image.network(
-                '${GlobalData.url}/images/view/${_ordersList[index].ordersId}',
-                width: 200,
-                height: 200,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  '${GlobalData.url}/images/view/${o.ordersId}',
+                  width: 85,
+                  height: 85,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(width: 85, height: 85, color: const Color(0xFFF5F5F5), child: const Icon(Icons.image_not_supported, color: Colors.grey)),
+                ),
               ),
-              Column(
-                children: [
-                  Text(
-                    _ordersList[index].productName,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '사이즈: ${_ordersList[index].sizeName} / 수량: ${_ordersList[index].ordersQty}',
-                  ),
-                  Text(
-                    'W: ${_ordersList[index].productPrice * _ordersList[index].ordersQty}',
-                  ),
-                  Text('픽업 매장: ${_ordersList[index].storeName}'),
-                ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(o.productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.5)),
+                    const SizedBox(height: 6),
+                    Text('Size: ${o.sizeName}  |  ${o.ordersQty}개', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    Text(
+                      '₩${(o.productPrice * o.ordersQty).toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]},")}',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          Row(
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  final o = _ordersList[index];
-
-                  Get.to(
-                    () => const OrderDetail(),
-                    arguments: {
-                      // OrderDetail에서 쓰는 키 이름으로 맞춰서 전달
-                      "orders_id": o.ordersId,
-                      "orders_customer_id": o.ordersCustomerId,
-                      "orders_status": o.ordersStatus,
-                      "orders_product_id": o.ordersProductId,
-                      "orders_number": o.ordersNumber,
-                      "orders_quantity": o.ordersQty,
-                      "orders_payment": o.ordersPayment,
-                      "orders_date": o.ordersDate,
-
-                      "product_name": o.productName,
-                      "product_price": o.productPrice,
-                      "size_name": o.sizeName,
-                      "store_name": o.storeName,
-
-                      "store_id": o.ordersStoreId,
-                    },
-                  );
-                },
-                child: const Text('주문 상세'),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () {
+                Get.to(
+                  () => const OrderDetail(),
+                  arguments: {
+                    "orders_id": o.ordersId,
+                    "orders_customer_id": o.ordersCustomerId,
+                    "orders_status": o.ordersStatus,
+                    "orders_product_id": o.ordersProductId,
+                    "orders_number": o.ordersNumber,
+                    "orders_quantity": o.ordersQty,
+                    "orders_payment": o.ordersPayment,
+                    "orders_date": o.ordersDate,
+                    "product_name": o.productName,
+                    "product_price": o.productPrice,
+                    "size_name": o.sizeName,
+                    "store_name": o.storeName,
+                    "store_id": o.ordersStoreId,
+                  },
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.black, width: 1.2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  // Get.to(OrderDetail());
-                },
-                child: Text('픽업 안내'),
-              ),
-            ],
+              child: const Text('상세 내역 보기', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800, fontSize: 14)),
+            ),
           ),
         ],
       ),
@@ -151,158 +225,109 @@ class _OrderHistoryState extends State<OrderHistory> {
   }
 
   Widget _selectCategory() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Container(
-        width: MediaQuery.widthOf(context) * 0.35,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.grey[200],
-        ),
-        height: 36,
-        child: Center(
-          child: DropdownButton<String>(
-            dropdownColor: Theme.of(context).colorScheme.onPrimary,
-            iconEnabledColor: Theme.of(context).colorScheme.error,
-            iconDisabledColor: Theme.of(context).colorScheme.onError,
-            value: _selectedTab,
-            items: _tabs.map((e) {
-              return DropdownMenuItem<String>(
-                value: e,
-                child: Text(e),
-              );
-            }).toList(),
-            onChanged: (String? v) {
-              if (v == null) return;
-              _selectedTab = v;
-              _selectedIndex = _tabs.indexOf(_selectedTab);
-              if (_selectedIndex == 0) {
-                getOrderData();
-              } else {
-                getOrderDataByStatus(_selectedIndex - 1);
-              }
-              setState(() {});
+    return SizedBox(
+      height: 50,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: _tabs.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          bool isSelected = _selectedIndex == index;
+          return ChoiceChip(
+            label: Text(_tabs[index]),
+            selected: isSelected,
+            onSelected: (bool selected) {
+              setState(() {
+                _selectedIndex = index;
+                _selectedTab = _tabs[index];
+                if (_selectedIndex == 0) getOrderData();
+                else getOrderDataByStatus(_selectedIndex - 1);
+              });
             },
-          ),
-        ),
+            selectedColor: Colors.black,
+            backgroundColor: Colors.white,
+            labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+              side: BorderSide(color: isSelected ? Colors.black : const Color(0xFFEEEEEE)),
+            ),
+            showCheckmark: false,
+          );
+        },
       ),
     );
   }
 
   Widget _searchWidget() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16.0),
       child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        height: 50,
         decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFFF8F8F8),
+          borderRadius: BorderRadius.circular(30),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                onSubmitted: (value) {
-                  _selectedIndex == 0
-                      ? getOrderDataByKeyword()
-                      : getOrderDataByStatusKeyword(
-                          _selectedIndex - 1,
-                        );
-                },
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  hintText: '주문번호 / 상품명',
-                ),
-              ),
-            ),
-          ],
+        child: TextField(
+          controller: _searchController,
+          onSubmitted: (value) {
+            _selectedIndex == 0 ? getOrderDataByKeyword() : getOrderDataByStatusKeyword(_selectedIndex - 1);
+          },
+          style: const TextStyle(fontSize: 14),
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.search, color: Colors.black, size: 20),
+            hintText: '상품명으로 내역을 검색해보세요',
+            hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(vertical: 15),
+          ),
         ),
       ),
     );
   }
 
-  // === Functions ===
-
   String getOrderStatus(int i) {
-    String status = "요청";
     switch (i) {
-      case 1:
-        status = "준비 중";
-      case 2:
-        status = "픽업 완료";
-      case 3:
-        status = "취소";
+      case 1: return "준비 중";
+      case 2: return "픽업 완료";
+      case 3: return "취소";
+      default: return "요청";
     }
-    return status;
   }
 
   Future getOrderData() async {
-    var url = Uri.parse(
-      "${GlobalData.url}/orders/selectByCustomer/$customer_id",
-    );
+    var url = Uri.parse("${GlobalData.url}/orders/selectByCustomer/$customer_id");
     var response = await http.get(url);
-    print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(
-        utf8.decode(response.bodyBytes),
-      );
-      List results = dataConvertedData['results'];
-      makeOrderList(results);
-    } else {
-      print("error : ${response.statusCode}");
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      makeOrderList(dataConvertedData['results']);
     }
   }
 
   Future getOrderDataByKeyword() async {
-    var url = Uri.parse(
-      "${GlobalData.url}/orders/selectByKeyword?customer=$customer_id&search=${_searchController.text}",
-    );
+    var url = Uri.parse("${GlobalData.url}/orders/selectByKeyword?customer=$customer_id&search=${_searchController.text}");
     var response = await http.get(url);
-    print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(
-        utf8.decode(response.bodyBytes),
-      );
-      List results = dataConvertedData['results'];
-      makeOrderList(results);
-    } else {
-      print("error : ${response.statusCode}");
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      makeOrderList(dataConvertedData['results']);
     }
   }
 
   Future getOrderDataByStatus(int status) async {
-    var url = Uri.parse(
-      "${GlobalData.url}/orders/selectByCustomerStatus?customer=$customer_id&status=$status",
-    );
+    var url = Uri.parse("${GlobalData.url}/orders/selectByCustomerStatus?customer=$customer_id&status=$status");
     var response = await http.get(url);
-    print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(
-        utf8.decode(response.bodyBytes),
-      );
-      List results = dataConvertedData['results'];
-      makeOrderList(results);
-    } else {
-      print("error : ${response.statusCode}");
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      makeOrderList(dataConvertedData['results']);
     }
   }
 
   Future getOrderDataByStatusKeyword(int status) async {
-    var url = Uri.parse(
-      "${GlobalData.url}/orders/selectByCustomerStatusKeyword?customer=$customer_id&status=$status&search=${_searchController.text}",
-    );
+    var url = Uri.parse("${GlobalData.url}/orders/selectByCustomerStatusKeyword?customer=$customer_id&status=$status&search=${_searchController.text}");
     var response = await http.get(url);
-    print(response.body);
     if (response.statusCode == 200) {
-      var dataConvertedData = json.decode(
-        utf8.decode(response.bodyBytes),
-      );
-      List results = dataConvertedData['results'];
-      makeOrderList(results);
-    } else {
-      print("error : ${response.statusCode}");
+      var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
+      makeOrderList(dataConvertedData['results']);
     }
   }
 
@@ -313,19 +338,13 @@ class _OrderHistoryState extends State<OrderHistory> {
         ordersId: item['orders_id'],
         ordersCustomerId: item['orders_customer_id'],
         ordersStatus: item['orders_status'],
-        ordersProductId:
-            item['orders_product_id'] ?? item['product_id'],
-        ordersStoreId:
-            item['orders_store_id'] ??
-            item['store_id'] ??
-            item['store_store_id'],
-
+        ordersProductId: item['orders_product_id'] ?? item['product_id'],
+        ordersStoreId: item['orders_store_id'] ?? item['store_id'] ?? item['store_store_id'],
         ordersNumber: item['orders_number'].toString(),
         ordersQty: item['orders_quantity'] ?? 0,
         productPrice: item['product_price'] ?? 0,
         ordersPayment: item['orders_payment'].toString(),
         ordersDate: item['orders_date'].toString(),
-
         storeName: item['store_name'].toString(),
         productName: item['product_name'].toString(),
         brandName: item['brand_name'].toString(),
@@ -333,9 +352,8 @@ class _OrderHistoryState extends State<OrderHistory> {
         categoryName: item['category_name'].toString(),
         colorName: item['color_name'].toString(),
       );
-
       _ordersList.add(order);
     }
     setState(() {});
   }
-} // class
+}
