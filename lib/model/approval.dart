@@ -9,10 +9,8 @@ class Approval {
   String approvalemplyeeName;
   String approvalemplyeeSeniorName;
   String approvalemplyeeDirectorName;
-  String approvalDate;
-  String approvalSeniorAssignDate;
-  String approvalDirectorAssignDate;
   int status;
+  String date;
   Approval(
     {
       this.approvalId,
@@ -25,10 +23,8 @@ class Approval {
       required this.approvalemplyeeName,
       required this.approvalemplyeeSeniorName,
       required this.approvalemplyeeDirectorName,
-      required this.approvalDate,
-      required this.approvalSeniorAssignDate,
-      required this.approvalDirectorAssignDate,
-      required this.status
+      required this.status,
+      required this.date
     }
   );
 
@@ -45,10 +41,8 @@ class Approval {
       approvalemplyeeName: json['approve_employee_name'],
       approvalemplyeeSeniorName: json['approve_senior_name'],
       approvalemplyeeDirectorName: json['approve_director_name'],
-      approvalDate: json['approve_date'],
-      approvalSeniorAssignDate: json['approve_senior_assign_date'],
-      approvalDirectorAssignDate: json['approve_director_assign_date'],
-      status : json['approve_status']
+      status : json['approve_status'],
+      date:json['date']
     );
   }
 }

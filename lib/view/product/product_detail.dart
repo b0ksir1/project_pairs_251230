@@ -50,8 +50,6 @@ class _ProductDetailState extends State<ProductDetail> {
   int product_id = Get.arguments ?? 1;
   int customer_id = 1;
 
-  TextEditingController _textEditingController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
