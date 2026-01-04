@@ -15,9 +15,9 @@ class AdminStockList extends StatefulWidget {
 
 class _AdminStockListState extends State<AdminStockList> {
   // === Property ===
-  String imageUrl = "${GlobalData.url}/images/view";
+  String imageUrl = "${GlobalData.url}/images/viewOne";
   String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
-
+  List<int> _imageList = [];
   late List<Stock> _stockList;
 
   @override
@@ -36,12 +36,18 @@ class _AdminStockListState extends State<AdminStockList> {
         children: [
           AdminSideBar(selectedMenu: SideMenu.stock, onMenuSelected: (menu) {}),
           Expanded(
-            child: _stockList.isEmpty
-                ? Center(child: Text('데이터가 비어있음'))
-                : Column(
-                  children: [
-                    _buildHead(), 
-                    _buildListView()]),
+            child: Column(
+              children: [
+                 Text(
+                    '재고 관리',
+                    style: _adminTitle(),
+                  ),
+                  SizedBox(height: 8),
+                   _buildHead(), 
+                  SizedBox(height: 8),
+                    _buildListView()
+              ],
+            )  
           ),
         ],
       ),
@@ -49,6 +55,10 @@ class _AdminStockListState extends State<AdminStockList> {
   } // build
 
   // === Widget ===
+
+  TextStyle _adminTitle() {
+    return TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  }
 
 
   Widget _buildListView() {
@@ -68,7 +78,7 @@ class _AdminStockListState extends State<AdminStockList> {
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.3,
                   child: Image.network(
-                            '${GlobalData.url}/images/view/${_stockList[index].productId}?t=${DateTime.now().millisecondsSinceEpoch}',
+                            '${GlobalData.url}/images/viewOne/${_stockList[index].productId}?t=${DateTime.now().millisecondsSinceEpoch}',
                           width: 100,
                           height: 100,
                           )
@@ -113,6 +123,8 @@ class _AdminStockListState extends State<AdminStockList> {
       ],
     );
   }
+
+  
 
   TextStyle headerStyle() {
     return TextStyle(
