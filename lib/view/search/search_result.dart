@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:http/http.dart' as http;
+import 'package:project_pairs_251230/view/product/product_detail.dart';
 
 class SearchResult extends StatefulWidget {
   const SearchResult({super.key});
@@ -59,8 +60,8 @@ class _SearchResultState extends State<SearchResult> {
           return InkWell(
             borderRadius: BorderRadius.circular(16),
             onTap: () {
-              // TODO: 상세 페이지 이동 등
-              // Get.to(ProductDetail(), arguments: item);
+              // 상세 페이지 이동 등
+              Get.to(ProductDetail(), arguments: item['product_id']);
             },
             child: Container(
               decoration: BoxDecoration(

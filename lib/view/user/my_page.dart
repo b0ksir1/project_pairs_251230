@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project_pairs_251230/view/auth/profile_edit.dart';
 import 'package:project_pairs_251230/view/order/order_history.dart';
 import 'package:project_pairs_251230/view/order/wish_list.dart';
+import 'package:project_pairs_251230/view/user/user_board.dart';
 
 class MyPage extends StatelessWidget {
   const MyPage({super.key});
@@ -15,6 +16,7 @@ class MyPage extends StatelessWidget {
     {'title': '주문 내역', 'icon': Icons.shopping_bag_outlined, 'page': OrderHistory()},
     {'title': '위시리스트', 'icon': Icons.favorite_border, 'page': WishList()},
     {'title': '구매내역', 'icon': Icons.receipt_long, 'page': OrderHistory()}, // 예시로 구매내역도 OrderHistory로 연결
+    // {'title': '자유게시판', 'icon': Icons.forum, 'page' : UserBoard()}
   ];
 
   // 네비게이션 함수 (GET 요청 시뮬레이션)
