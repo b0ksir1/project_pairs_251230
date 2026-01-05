@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:project_pairs_251230/model/stock.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/view/admin/admin_side_bar.dart';
@@ -20,6 +21,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final urlPath = GlobalData.url;
   String imageUrl = "${GlobalData.url}/images/view";
   String stockSelectAllUrl = "${GlobalData.url}/stock/selectAll";
+  String monthSalesUrl = "${GlobalData.url}/orders/month";
 
   late List<Stock> _stockList;
   int monthSales = 0;
@@ -30,6 +32,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _stockList = [];
     getProductData();
     getJSONData();
+    getMonthSales();
+  }
+
+  // 금액 comma
+  String formatCurrency(int value) {
+    final formatter = NumberFormat('#,###');
+    return formatter.format(value);
   }
 
   // ===================== UI =====================
@@ -80,7 +89,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
                               child: Text(
-                                '$monthSales원',
+                                '${formatCurrency(monthSales)}원',
                                 style: TextStyle(
                                   color: const Color.fromARGB(255, 0, 0, 0),
                                   fontSize: 20,
@@ -127,7 +136,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   // ===================== Widgets =====================
-
+  // 테이블 타이틀
   Widget _buildHead() {
     return Container(
       width: double.infinity,
@@ -270,9 +279,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future getJSONData() async {
     var url = Uri.parse('$urlPath/product/select');
     var response = await http.get(url);
-
     print(response.body);
-
     if (response.statusCode == 200) {
       _dataList.clear();
       var dataConvertedData = json.decode(utf8.decode(response.bodyBytes));
@@ -284,9 +291,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // void _showErrorSnackBar(String mag) {
-  //   Get.snackbar("WWWWWWWWWWWWWWWWWWWarning", mag);
-  // }
+  Future<void> getMonthSales() async {
+    final url = Uri.parse(monthSalesUrl);
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final decoded = json.decode(utf8.decode(response.bodyBytes)) as Map;
+      monthSales = decoded['month_sales'] ?? 0;
+
+      setState(() {});
+    } else {
+      debugPrint('month sales error: ${response.statusCode}');
+    }
+  }
+
   Future<void> getProductData() async {
     final url = Uri.parse(stockSelectAllUrl);
     final response = await http.get(url);
