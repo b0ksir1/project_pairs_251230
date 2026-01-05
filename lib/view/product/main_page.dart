@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/page_chart.dart';
+import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/util/message.dart';
 import 'package:project_pairs_251230/view/category/category_list.dart';
 import 'package:project_pairs_251230/view/chat/customer_chat_screen.dart';
@@ -62,7 +64,22 @@ class _MainPageState extends State<MainPage>
         actions: [
           TextButton(onPressed: () => Get.to(PageChart()), child: Text('.')),
           IconButton(
-            onPressed: () => Get.to(CustomerChatScreen()),
+            onPressed: () async {
+          final docRef = FirebaseFirestore.instance.collection('chatting').doc(GlobalData.customerId.toString());
+          final docSnap = await docRef.get();
+          if (docSnap.exists) {
+            Get.to(CustomerChatScreen());
+          } else {
+            print(GlobalData.customerId);
+            final docRef = FirebaseFirestore.instance.collection('chatting').doc(GlobalData.customerId.toString()); // 자동 id
+            await docRef.set({
+              'customerId': GlobalData.customerId.toString(),
+              'startAt': DateTime.now().toString(),
+              'employeeId': 'empty',
+              'dialog': [],
+            }).then((value) => Get.to(CustomerChatScreen()));
+          }
+        },
             icon: Icon(Icons.chat_bubble_outline,
             color: const Color.fromARGB(255, 255, 255, 255),),
           ),

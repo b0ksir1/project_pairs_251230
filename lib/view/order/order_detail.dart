@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -347,7 +348,22 @@ class _OrderDetailState extends State<OrderDetail> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => Get.to(const CustomerChatScreen()),
+                  
+                  onPressed: () async {
+          final docRef = FirebaseFirestore.instance.collection('chatting').doc(GlobalData.customerId.toString());
+          final docSnap = await docRef.get();
+          if (docSnap.exists) {
+            Get.to(CustomerChatScreen());
+          } else {
+            final docRef = FirebaseFirestore.instance.collection('chatting').doc(GlobalData.customerId.toString()); // 자동 id
+            await docRef.set({
+              'customerId': GlobalData.customerId.toString(),
+              'startAt': DateTime.now().toString(),
+              'employeeId': 'empty',
+              'dialog': [],
+            }).then((value) => Get.to(CustomerChatScreen()));
+          }
+        },
                   style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52), side: const BorderSide(color: Color(0xFFE5E7EB)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                   child: const Text("문의하기", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
                 ),

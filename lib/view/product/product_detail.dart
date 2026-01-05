@@ -518,16 +518,17 @@ class _ProductDetailState extends State<ProductDetail> {
       height: 50,
       child: ElevatedButton(
         onPressed: () async {
-          final docRef = FirebaseFirestore.instance.collection('chatting').doc(customer_id.toString());
+          final docRef = FirebaseFirestore.instance.collection('chatting').doc(GlobalData.customerId.toString());
           final docSnap = await docRef.get();
           if (docSnap.exists) {
             Get.to(CustomerChatScreen());
           } else {
-            await FirebaseFirestore.instance.collection("chatting").doc(customer_id.toString()).set({
+            final docRef = FirebaseFirestore.instance.collection('chatting').doc(GlobalData.customerId.toString()); // 자동 id
+            await docRef.set({
               'customerId': customer_id.toString(),
               'startAt': DateTime.now().toString(),
               'employeeId': 'empty',
-              'dialog': FieldValue.arrayUnion([]),
+              'dialog': [],
             }).then((value) => Get.to(CustomerChatScreen()));
           }
         },
