@@ -97,7 +97,7 @@ class _MainPageHomeState extends State<MainPageHome> {
                       children: [
                         Text(
                           'NEW ARRIVAL',
-                          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14, fontWeight: FontWeight.w500),
+                          style: TextStyle(color: Colors.white.withAlpha(190), fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 4),
                         const Text(
@@ -282,7 +282,7 @@ class _MainPageHomeState extends State<MainPageHome> {
           height: 80,
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: const Color(0xFFF9F9F9),
+            color: const Color.fromARGB(255, 255, 255, 255),
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFFEEEEEE)),
           ),
