@@ -65,12 +65,12 @@ class _MainPageHomeState extends State<MainPageHome> {
       child: _dataList.isEmpty
           ? const Center(child: CircularProgressIndicator(color: Colors.black))
           : ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(30),
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: Image.network(
-                      '$urlPath/images/view/${_dataList[0]['product_id']}',
+                      '$urlPath/images/viewOne/${_dataList[0]['product_id']}',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -97,7 +97,7 @@ class _MainPageHomeState extends State<MainPageHome> {
                       children: [
                         Text(
                           'NEW ARRIVAL',
-                          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14, fontWeight: FontWeight.w500),
+                          style: TextStyle(color: Colors.white.withAlpha(190), fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 4),
                         const Text(
@@ -138,7 +138,7 @@ class _MainPageHomeState extends State<MainPageHome> {
   Widget _buildHorizontalProductList() {
     if (_dataList.isEmpty) return const SizedBox(height: 200);
     return SizedBox(
-      height: 240,
+      height: 250,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
@@ -154,9 +154,9 @@ class _MainPageHomeState extends State<MainPageHome> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(30),
                     child: Image.network(
-                      '$urlPath/images/view/${product['product_id']}',
+                      '$urlPath/images/viewOne/${product['product_id']}',
                       height: 150,
                       width: 150,
                       fit: BoxFit.cover,
@@ -190,7 +190,7 @@ class _MainPageHomeState extends State<MainPageHome> {
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
         color: const Color(0xFFF8F8F8),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
         children: [
@@ -204,7 +204,7 @@ class _MainPageHomeState extends State<MainPageHome> {
                 const SizedBox(height: 15),
                 GestureDetector(
                   onTap: () {},
-                  child: const Text('매거진 읽기 →', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text('매거진 읽기 →', style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
                 ),
               ],
             ),
@@ -237,9 +237,9 @@ class _MainPageHomeState extends State<MainPageHome> {
             children: [
               Expanded(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(30),
                   child: Image.network(
-                    '$urlPath/images/view/${product['product_id']}',
+                    '$urlPath/images/viewOne/${product['product_id']}',
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -282,7 +282,7 @@ class _MainPageHomeState extends State<MainPageHome> {
           height: 80,
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: const Color(0xFFF9F9F9),
+            color: const Color.fromARGB(255, 255, 255, 255),
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFFEEEEEE)),
           ),

@@ -4,6 +4,7 @@ import 'package:project_pairs_251230/util/side_menu.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_list.dart';
 import 'package:project_pairs_251230/view/admin/admin_approval_request.dart';
 import 'package:project_pairs_251230/view/admin/admin_board.dart';
+import 'package:project_pairs_251230/view/admin/admin_chat_list.dart';
 import 'package:project_pairs_251230/view/admin/admin_dashboard.dart';
 import 'package:project_pairs_251230/view/admin/admin_delivery_product.dart';
 import 'package:project_pairs_251230/view/admin/admin_insert_product.dart';
@@ -91,6 +92,14 @@ class AdminSideBar extends StatelessWidget {
             },
           ),
           AdminSideItem(
+            icon: Icons.approval_outlined,
+            text: '품의',
+            selected: selectedMenu == SideMenu.approval,
+            onTap: () {
+              Get.to(AdminApprovalList());
+            },
+          ),
+          AdminSideItem(
             icon: Icons.call_made,
             text: '발주 페이지',
             selected: selectedMenu == SideMenu.procure,
@@ -98,14 +107,14 @@ class AdminSideBar extends StatelessWidget {
               Get.to(AdminPurchaseOrder());
             },
           ),
-          // AdminSideItem(
-          //   icon: Icons.call_received,
-          //   text: '수주 페이지',
-          //   selected: selectedMenu == SideMenu.obtain,
-          //   onTap: () {
-          //     Get.to(AdminSalesOrder());
-          //   },
-          // ),
+          AdminSideItem(
+            icon: Icons.chat,
+            text: '문의 받기',
+            selected: selectedMenu == SideMenu.chatting,
+            onTap: () {
+              Get.to(AdminChatList());
+            },
+          ),
           AdminSideItem(
             icon: Icons.border_all_rounded,
             text: '게시판',
@@ -114,14 +123,7 @@ class AdminSideBar extends StatelessWidget {
               Get.to(AdminBoard());
             },
           ),
-          AdminSideItem(
-            icon: Icons.approval_outlined,
-            text: '품의',
-            selected: selectedMenu == SideMenu.approval,
-            onTap: () {
-              Get.to(AdminApprovalList());
-            },
-          ),
+          
           // AdminSideItem(
           //   icon: Icons.settings_outlined,
           //   text: '설정',

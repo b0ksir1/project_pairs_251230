@@ -7,7 +7,7 @@ enum SideMenu {
   stock, // 재고 확인
   sales, // 매출 확인
   procure, // 발주 페이지
-  // obtain, // 수주 페이지
+  chatting, // 채팅
   board, // 게시판
   approval, // 품의
   // settings, // 설정
