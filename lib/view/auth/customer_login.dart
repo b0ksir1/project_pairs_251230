@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_pairs_251230/util/global_data.dart';
 import 'package:project_pairs_251230/util/message.dart';
-// import 'package:project_pairs_251230/view/auth/find_id_password.dart';
 import 'package:project_pairs_251230/view/auth/sign_up.dart';
 import 'package:project_pairs_251230/view/product/main_page.dart';
 import 'package:http/http.dart' as http;
@@ -130,21 +129,7 @@ class _CustomerLoginState extends State<CustomerLogin> {
                       ),
                     ),
                   ),
-                  // Align(
-                  //   alignment: Alignment.centerRight,
-                  //   child: TextButton(
-                  //     onPressed: () => Get.to(FindIdPassword()),
-                  //     child: Text(
-                  //       '아이디 / 비밀번호 찾기',
-                  //       style: TextStyle(
-                  //           color: Colors.grey,
-                  //           fontWeight: FontWeight.bold,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
                   Padding(
-                    // 위 TextButton 활성화 시 (0, 10, 0, 30)로 변경
                     padding: const EdgeInsets.fromLTRB(0, 40, 0, 30),
                     child: ElevatedButton(
                       onPressed: () => checkLogin(),
