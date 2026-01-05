@@ -118,3 +118,26 @@ async def select_by_id(customer_id: int):
     result = curs.fetchone()
     conn.close()
     return result
+
+
+class CustomerUpdate(BaseModel):
+    customer_email: str
+    customer_password: str
+    customer_name: str
+    customer_phone: str
+    customer_address: str
+
+@router.post('/update/{customer_id}')
+async def update_by_id(customer_id: int, customer: CustomerUpdate):
+    try:
+        conn = connect()
+        curs = conn.cursor(pymysql.cursors.DictCursor) # 필드명을 키로 받기 위해 DictCursor 사용
+        sql = 'update customer set customer_email = %s, customer_password = %s, customer_name =%s, customer_phone =%s, customer_address =%s where customer_id = %s'
+        curs.execute(sql, (customer.customer_email,customer.customer_password, customer.customer_name,customer.customer_phone,customer.customer_address, customer_id))
+        conn.commit()
+        conn.close()
+        return {"results" : "OK"}
+
+    except Exception as e:
+        print("Error ", e)
+        return {"results" : "Error"} 
