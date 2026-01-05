@@ -10,7 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // public 신용카드 결제키
   Stripe.publishableKey = "pk_test_51SlPLl2Ypir8wPmXWCoQI5sqxtrBTMWLZsEvbsoPiGX1oNWUi9ALh0K4KtkSffV5NVvL6CEezRfGQjhz3EQGQqr900CDFWlj5r";
-  // await Stripe.instance.applySettings();
+  await Stripe.instance.applySettings();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await GetStorage.init();
   runApp(const MyApp());
