@@ -35,6 +35,7 @@ class _AdminInsertProductState extends State<AdminInsertProduct> {
   String selectedColor = 'Red';
   List<Product> _productList = [];
   int? selectedProductId;
+  
 
   // === product insert용 state ===
   int selectedColorId = 1;
@@ -132,12 +133,16 @@ class _AdminInsertProductState extends State<AdminInsertProduct> {
                       icon: const Icon(Icons.keyboard_arrow_down),
                       items: _productList.map((product) {
                         return DropdownMenuItem<int>(
+                          
                           value: product.product_id,
                           child: Text(product.product_name),
                         );
                       }).toList(),
                       onChanged: (int? value) {
                         setState(() {
+                          String cutText(String text, {int max = 12}){
+                            return text.length > max ? '${text.substring(0, max)}...' : text;
+                          }
                           selectedProductId = value!;
                         });
                       },

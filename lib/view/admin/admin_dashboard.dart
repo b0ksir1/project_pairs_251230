@@ -248,7 +248,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   // container
   BoxDecoration containerStyle() {
     return BoxDecoration(
-      color: const Color.fromARGB(255, 250, 238, 220),
+      color: const Color.fromARGB(255, 255, 255, 255),
       border: Border.all(color: const Color.fromARGB(255, 177, 203, 214)),
       borderRadius: BorderRadius.circular(6),
     );
