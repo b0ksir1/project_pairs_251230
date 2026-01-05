@@ -18,7 +18,8 @@ class _ProfileEditState extends State<ProfileEdit> {
   // Property
   late String _initialName;
   late String _initialPhone;
-  late String _email; // 이메일은 변경 불가
+  
+  String? _email; // 이메일은 변경 불가
 
   // 컨트롤러 선언
   late TextEditingController _nameController;
@@ -40,19 +41,25 @@ class _ProfileEditState extends State<ProfileEdit> {
     if (response.statusCode == 200) {
       setState(() {
         _user = Customer.fromJson(json.decode(utf8.decode(response.bodyBytes)));
+
+        _initialName = _user!.customer_name;
+        _initialPhone = _user!.customer_phone;
+        _email = _user!.customer_email;
+
+        _nameController = TextEditingController(text: _initialName);
+        _phoneController = TextEditingController(text: _initialPhone);
       });
+    }else{
+      message.errorSnackBar('Error', '서버 오류가 발생했습니다.');
     }
   }
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
+    _phoneController = TextEditingController();
     _fetchUserData();
-    _initialName = _user!.customer_name;
-    _initialPhone = _user!.customer_phone;
-    _email = _user!.customer_email;
-    _nameController = TextEditingController(text: _initialName);
-    _phoneController = TextEditingController(text: _initialPhone);
   }
 
   @override
@@ -66,9 +73,21 @@ class _ProfileEditState extends State<ProfileEdit> {
 
   // 회원 정보 수정
   Future<void> _updateProfile() async{
+    if (_email == null) {
+      message.errorSnackBar('Error', '유저 정보 로딩 중입니다.');
+      return;
+    }
+
+    final newPassword = _newPasswordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+    if(newPassword.isNotEmpty && newPassword != confirmPassword){ // 비밀번호 유효성 검사
+      message.errorSnackBar('Error', '새 비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
     try{
       final customer = Customer(
-        customer_email: _email,
+        customer_email: _email!,
         customer_password: _newPasswordController.text.trim(),
         customer_name: _nameController.text.trim(),
         customer_phone: _phoneController.text.trim(),
@@ -82,38 +101,47 @@ class _ProfileEditState extends State<ProfileEdit> {
       );
       final data = json.decode(utf8.decode(response.bodyBytes));
       final result = data['results'];
-      
-
-      final newPassword = _newPasswordController.text.trim();
-      final confirmPassword = _confirmPasswordController.text.trim();
 
       if(result == 'OK'){
+        if(_nameController.text.isEmpty){
+          message.errorSnackBar('Error', '이름을 입력해 주세요.');
+        }else if(_phoneController.text.isEmpty){
+          message.errorSnackBar('Error', '전화번호를 입력해 주세요.');
+        }else if(newPassword.isEmpty){
+          message.errorSnackBar('Error', '새 비밀번호를 입력해 주세요.');
+        }else{
         message.showDialog('Success', '회원 정보가 수정되었습니다.');
-      }else if(newPassword.isNotEmpty && newPassword != confirmPassword){ // 비밀번호 유효성 검사
-        message.errorSnackBar('Error', '새 비밀번호가 일치하지 않습니다.');
-      }else{
+        }
+      } else {
         message.errorSnackBar('Error', '회원 정보 수정에 실패했습니다.');
       }
     } catch(e){
+      debugPrint('updateProfile error: $e');
       message.errorSnackBar('Error', '회원 정보 수정에 실패했습니다.');
     }
   }
 
   // 회원 탈퇴
   Future<void> _withdrawUser() async{
+    if (_email == null) {
+      message.errorSnackBar('Error', '유저 정보 로딩 중입니다.');
+      return;
+    }
+
     try{
-      final customer = Customer(
-        customer_email: _email,
-        customer_password: _newPasswordController.text.trim(),
-        customer_name: _nameController.text.trim(),
-        customer_phone: _phoneController.text.trim(),
-        customer_address: "N/A"
-      );
+    //   final customer = Customer(
+    //     customer_email: _email,
+    //     customer_password: _newPasswordController.text.trim(),
+    //     customer_name: _nameController.text.trim(),
+    //     customer_phone: _phoneController.text.trim(),
+    //     customer_address: "N/A"
+    //   );
       final url = Uri.parse("${GlobalData.url}/customer/delete/${GlobalData.customerId}");
       final response = await http.post(
         url,
         headers: {'Content-Type' : 'application/json'},
-        body: json.encode(customer.toJson()),
+        // body: json.encode(customer.toJson()),
+        body: json.encode({'customer_email': _email!}),
       );
       final data = json.decode(utf8.decode(response.bodyBytes));
       final result = data['results'];
@@ -124,6 +152,7 @@ class _ProfileEditState extends State<ProfileEdit> {
         message.errorSnackBar('Error', '회원 탈퇴에 실패했습니다.');
       }
     } catch(e){
+      debugPrint('withdrawUser error: $e');
       message.errorSnackBar('Error', '회원 탈퇴에 실패했습니다.');
     }
   }
